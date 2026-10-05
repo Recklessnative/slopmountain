@@ -1,4 +1,4 @@
-// Full headless playthrough on AZERTY keys: car, office, deadlines, CourseGen, peak, all six conversations, the finale.
+// Full headless playthrough on AZERTY keys: car, office, deadlines, CourseGen, the LMS otherworld, peak, all six conversations, the finale.
 // Screenshots land in tests/out/. Exits non-zero on any page error.
 const { chromium } = require('playwright');
 const fs=require('fs'), http=require('http'), path=require('path');
@@ -41,7 +41,20 @@ const fs=require('fs'), http=require('http'), path=require('path');
   await p.evaluate(()=>dispatchEvent(new KeyboardEvent('keydown',{key:'&',code:'Digit1'})));
   s=await waitFor(s=>s.g>=5,60000); await p.waitForTimeout(600); await p.screenshot({path:shot('gen5.png')}); s=await waitFor(s=>s.g>=11,60000); await p.screenshot({path:shot('shaky.png')});
   s=await waitFor(s=>s.ph==='tool',60000); console.log('back in office',JSON.stringify(s)); await p.waitForTimeout(2500); await p.screenshot({path:shot('office.png')});
-  for(let i=0;i<80;i++){ await p.keyboard.press('e'); await p.waitForTimeout(80);} 
+  for(let i=0;i<40;i++){ await p.keyboard.press('e'); await p.waitForTimeout(80);} 
+  // act 4: the LMS otherworld. Collect the three real questions and walk out of the exit
+  s=await waitFor(s=>s.ph==='lms',200000); console.log('lms',JSON.stringify(s)); await p.waitForTimeout(1500); await p.screenshot({path:shot('lms.png')});
+  await p.evaluate(()=>{ __slop.L.popT=9999; __slop.L.comps.forEach(c=>{c.state='sated';c.sated=9999;}); });
+  for(const n of await p.evaluate(()=>__slop.L.notes.map(n=>({x:n.x,z:n.z})))){
+    await p.evaluate(([x,z])=>Object.assign(__slop.player,{x,z:z+1.1,yaw:0,pitch:-.3}),[n.x,n.z]); await p.waitForTimeout(500); await p.keyboard.press('e');
+    for(let i=0;i<4;i++){ await p.waitForTimeout(400); await p.keyboard.press(' ');}
+  }
+  console.log('questions', await p.evaluate(()=>__slop.L.qs.length));
+  await p.evaluate(()=>{ const d=__slop.L.xDoor; Object.assign(__slop.player,{x:d.x,z:d.z+2,yaw:0,pitch:0}); __slop.L.mShut=false; });
+  await p.keyboard.down('z'); await p.waitForFunction(()=>__slop.phase!=='lms',null,{timeout:60000}).catch(()=>{}); await p.keyboard.up('z');
+  for(let i=0;i<4;i++){ await p.waitForTimeout(500); await p.keyboard.press(' ');}
+  s=await waitFor(s=>s.ph==='super',90000); console.log('out of the LMS',JSON.stringify(s));
+  for(let i=0;i<70;i++){ await p.keyboard.press('e'); await p.waitForTimeout(80);} 
   s=await waitFor(s=>s.ph==='peak',200000); console.log('peak',JSON.stringify(s)); await p.waitForTimeout(4000); await p.screenshot({path:shot('peak.png')});
   for(let i=0;i<10;i++){ await p.keyboard.press(' '); await p.waitForTimeout(600);} 
   await p.waitForFunction(()=>__slop.S.ringing||document.querySelectorAll('.tag').length>3,null,{timeout:60000}).catch(()=>{}); await p.waitForTimeout(3000); await p.screenshot({path:shot('learners.png')}); s=await waitFor(s=>s.ring,60000); await p.waitForTimeout(800); await p.screenshot({path:shot('ring.png')}); await p.keyboard.press('e');

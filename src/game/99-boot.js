@@ -4,6 +4,6 @@ const fontsReady = document.fonts ? Promise.race([
   new Promise(r => setTimeout(r, 2500))
 ]) : Promise.resolve();
 $('#begin').disabled = true;
-fontsReady.then(() => { applyLook(); buildPhone(); buildOffice(); buildStreet(); bake(officeWalls, officeAO); bake(officeFloor, officeAO); bake(deskG, officeAO); bake(street, streetAO); updateTerrain(); $('#begin').disabled = false; animate(); });
+fontsReady.then(() => { applyLook(); buildPhone(); buildOffice(); buildStreet(); buildLMS(); resetLMS(); bake(officeWalls, officeAO); bake(officeFloor, officeAO); bake(deskG, officeAO); bake(street, streetAO); updateTerrain(); $('#begin').disabled = false; animate(); });
 // test hook for automated playthroughs only
-window.__slop = { get phase() { return phase; }, set phase(v) { phase = v; }, get people() { return people; }, get deskG() { return deskG; }, finale: () => finale(), get S() { return S; }, player, get frozen() { return frozen; }, get talker() { return talker; }, get H() { return H; }, get n() { return paperCount; }, get voiceOK() { return voiceOK; }, get talking() { return talking; } };
+window.__slop = { get phase() { return phase; }, set phase(v) { phase = v; }, get people() { return people; }, get deskG() { return deskG; }, finale: () => finale(), get S() { return S; }, player, get frozen() { return frozen; }, get talker() { return talker; }, get H() { return H; }, get n() { return paperCount; }, get voiceOK() { return voiceOK; }, get talking() { return talking; }, L, LW, LMS_O, tileC, otherworld: () => otherworld(), enterLMS: r => enterLMS(r), scene, camera, flash, lms };

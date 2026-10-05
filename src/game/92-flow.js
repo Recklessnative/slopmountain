@@ -14,6 +14,7 @@ function setupScene() {
   removeTalker(); removeTags(() => true); learners.children.slice().forEach(c => { const k = people.indexOf(c); if (k >= 0) people.splice(k, 1); }); learners.clear();
   Object.assign(player, { x: 0, z: 1.1, yaw: 0, pitch: -.18, y: 1.7 }); musicStop(); radioOff(); street.visible = false; if (frontDoor) frontDoor.rotation.y = 0; S.doorShut = false;
   inboxEl.querySelectorAll('.req').forEach(n => n.remove()); S.inbox = []; renderInbox(); $('#dTimeRow').hidden = true;
+  resetLMS(); lms.visible = false; world.visible = true; hemi.intensity = .62; flash.distance = 30; subs.style.filter = ''; $('#fade').style.background = ''; $('#tCrouch').hidden = true;
 }
 function begin() {
   audioInit(); if (ac && ac.state === 'suspended') ac.resume(); if (voiceOn) warmVoice();
@@ -40,6 +41,11 @@ $('#voiceTest').addEventListener('click', () => {
   setTimeout(() => { if (!ok) res.textContent = 'No voice came through. The game still works with subtitles.'; }, 2800);
 });
 $('#skip').addEventListener('click', () => { if (skipLine) skipLine(); });
+$('#retry').addEventListener('click', () => {
+  // back to the start of the LMS, keeping everything that happened before it
+  $('#ending').hidden = true; S.ended = false; $('#fade').classList.add('on');
+  setTimeout(() => { $('#fade').style.background = ''; enterLMS(true); $('#fade').classList.remove('on'); }, 700);
+});
 $('#again').addEventListener('click', () => {
   $('#ending').hidden = true; resetState(); $('#fade').classList.add('on');
   setTimeout(() => { setupScene(); frozen = false; updateDash(); $('#fade').classList.remove('on'); $('#cross').hidden = isTouch; titleFound(); coldOpen(); }, 700);

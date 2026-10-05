@@ -34,6 +34,8 @@ function voStop() { if (voSrc) { try { voSrc.onended = null; voSrc.stop(); } cat
 function voPlay(buf, who, onend) {
   const src = ac.createBufferSource(); src.buffer = buf; let out = ac.destination;
   if (who === 'Car radio' || who === 'Sam, night shift') { const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = who === 'Car radio' ? 1700 : 1400; bp.Q.value = who === 'Car radio' ? .8 : .5; const g = ac.createGain(); g.gain.value = 1.6; bp.connect(g); g.connect(ac.destination); out = bp; }
+  // in the LMS, low attention makes the narrator harder to hear
+  if (phase === 'lms') { const ag = ac.createGain(); ag.gain.value = .3 + .7 * L.att / 100; ag.connect(out); out = ag; }
   src.connect(out); src.onended = onend; src.start(); voSrc = src;
 }
 let skipLine = null;

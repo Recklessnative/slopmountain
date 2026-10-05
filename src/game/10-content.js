@@ -11,9 +11,15 @@ const ENDINGS = {
     lesson: 'Refusing the tool is the same mistake as worshipping it. Less but better only works if you also learn what the new tools are genuinely good for.' },
   idle: { title: 'Automated Anyway',
     text: 'Kim did nothing at all. Someone else in the organisation found the tool instead. It generated a course about doing nothing, assigned it to four thousand people and sent three reminder emails. It scored 4.7 out of 5 on the happy sheet.',
-    lesson: 'Doing nothing is not a strategy. If L&D does not decide what AI is for, the tool decides for you, and it optimises for volume.' }
+    lesson: 'Doing nothing is not a strategy. If L&D does not decide what AI is for, the tool decides for you, and it optimises for volume.' },
+  completion: { title: 'The Completion',
+    text: 'Kim’s attention ran out somewhere in Module 4. She clicked Complete, and then she clicked it again, and the paper closed over her like a well-made course. Her completion rate was perfect. Nobody could tell her apart from the others.',
+    lesson: 'Attention is the scarcest thing in learning, including your own. A team that drowns in its own content can’t guard anyone else’s attention.' },
+  mandatory: { title: 'Mandatory',
+    text: 'Kim watched the mandatory training to the end. It was forty-seven minutes long. Then it was forty-eight. At some point the progress bar started going backwards, and Kim, being a professional, kept watching. A dashboard somewhere recorded her as compliant.',
+    lesson: 'Mandatory is a property of the rule, not of the course. Most mandatory content exists because nobody asked whether one page and a signature would do.' }
 };
-const ORDER = ['better', 'more', 'dinosaur', 'idle'];
+const ORDER = ['better', 'more', 'dinosaur', 'idle', 'completion', 'mandatory'];
 const REQUESTS = [
   ['Finance', 'Can we have a course on the new expense tool?'],
   ['Legal', 'Compliance module, mandatory, by Friday'],

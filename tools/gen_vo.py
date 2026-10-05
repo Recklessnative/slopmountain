@@ -22,6 +22,12 @@ VOICES = {
     'Sales': ('am_puck', 1.02, 'en-us'),
     'Exec office': ('am_onyx', .97, 'en-us'),
     'Team lead': ('af_nicole', 1.0, 'en-us'),
+    'Jan, accounts payable': ('bm_lewis', 1.0, 'en-gb'),
+    'Ana, night shift': ('af_heart', 1.0, 'en-us'),
+    'Tom, new starter': ('am_liam', 1.0, 'en-us'),
+    'Noor, customer service': ('bf_alice', 1.0, 'en-gb'),
+    'Marco, sales': ('am_eric', 1.0, 'en-us'),
+    'Lotte, team lead': ('af_kore', 1.0, 'en-us'),
 }
 def speakable(t):
     t = t.replace('“', '').replace('”', '').replace('‘', "'").replace('’', "'").replace('…', '... ').replace('✦', '')

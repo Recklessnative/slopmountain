@@ -10,7 +10,7 @@ function resetState() {
 resetState();
 const found = new Set(store.get('slop-endings-v2', []));
 function renderFound(el) { el.innerHTML = ORDER.map(k => `<li class="${found.has(k) ? 'got' : ''}">${found.has(k) ? ENDINGS[k].title : 'undiscovered'}</li>`).join(''); }
-function titleFound() { $('#titleFound').textContent = found.size ? `Endings found so far: ${found.size} of 4` : 'There are four endings. The narrator has a favourite.'; }
+function titleFound() { $('#titleFound').textContent = found.size ? `Endings found so far: ${found.size} of ${ORDER.length}` : 'There are six endings. The narrator has a favourite.'; }
 titleFound();
 
 /* ================= HUD ================= */

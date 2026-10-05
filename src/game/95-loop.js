@@ -9,7 +9,7 @@ function step(dt) {
     mx += touch.mx; mz += touch.my;
   }
   const len = Math.hypot(mx, mz);
-  let speed = phase === 'desk' || phase === 'tool' ? 3.4 : phase === 'street' ? 2.6 : 6.5; if (keys.shift) speed *= 1.6;
+  let speed = phase === 'desk' || phase === 'tool' ? 3.4 : phase === 'street' ? 2.6 : phase === 'lms' ? (L.crouch ? 1.3 : 2.9) : 6.5; if (keys.shift && !(phase === 'lms' && L.crouch)) speed *= 1.6;
   if (len > .05) {
     mx /= Math.max(1, len); mz /= Math.max(1, len);
     const sin = Math.sin(player.yaw), cos = Math.cos(player.yaw);
@@ -55,7 +55,8 @@ function step(dt) {
     if (player.z < 8.1) enterOffice();
   } else if (S.doorShut && frontDoor.rotation.y < 0) frontDoor.rotation.y = Math.min(0, frontDoor.rotation.y + dt * 1.8);
   // bounds
-  if (phase === 'street' || phase === 'drive') {}
+  if (phase === 'street' || phase === 'drive' || phase === 'shift') {}
+  else if (phase === 'lms') updateLMS(dt);
   else if (officeWalls.visible) { player.x = Math.max(-9.5, Math.min(9.5, player.x)); player.z = Math.max(-11, Math.min(8, player.z)); }
   else { const dx = player.x - C.x, dz = player.z - C.z, d = Math.hypot(dx, dz), m = Math.max(12, R + 14); if (d > m) { player.x = C.x + dx / d * m; player.z = C.z + dz / d * m; } }
   if (deskG.visible && deskG.scale.x > .5 && !S.toDesk) { const lx = player.x - C.x, lz = player.z - C.z; if (Math.abs(lx) < 1.5 && Math.abs(lz) < .8) { if (Math.abs(lz) / .8 > Math.abs(lx) / 1.5) player.z = C.z + Math.sign(lz || 1) * .8; else player.x = C.x + Math.sign(lx || 1) * 1.5; } }
@@ -71,7 +72,7 @@ function step(dt) {
     updateTerrain(); updatePapers(); updateDash(Math.round(a.fromC + (a.toC - a.fromC) * e));
     if (a.t >= 1) { shrinkAnim = null; a.done(); }
   }
-  const h = hAt(player.x, player.z) + (phase === 'peak' ? 3 : 0), eye = (S.dive > 0 || phase === 'screen') ? 1.25 - 1.7 : 0;
+  const h = hAt(player.x, player.z) + (phase === 'peak' ? 3 : 0), eye = (S.dive > 0 || phase === 'screen') ? 1.25 - 1.7 : phase === 'lms' && L.crouch ? -.85 : 0;
   player.y += ((h + 1.7 + eye) - player.y) * Math.min(1, dt * 6);
   // a guide arrow towards whoever is waiting to talk
   const g = $('#guide');
@@ -142,6 +143,7 @@ function animate() {
   const wideP = phase === 'peak' || phase === 'talk' || phase === 'forever';
   const far = outside ? (wideP ? (ps1 ? 80 : 130) : (ps1 ? 55 : 110)) : (ps1 ? FOG.ps1[2] : FOG.clean[2]); scene.fog.far += (far - scene.fog.far) * Math.min(1, dt * 1.5);
   flash.intensity = phase === 'drive' ? .25 : outside ? .9 : 1.3;
+  lmsLook(dt);
   if (S.dawn) {
     S.dawn = Math.min(1, S.dawn + dt / 7); const k = S.dawn * S.dawn * (3 - 2 * S.dawn);
     scene.fog.color.copy(FOG_OUT).lerp(DAWN, k); scene.background.copy(scene.fog.color);
