@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="The Slop Mountain: a short narrated game about AI and the mountain of learning content. An experiment by Yannick, learning strategist.">
+<title>The Slop Mountain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Special+Elite&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="game"></div>
+<div id="cross" class="hud" hidden></div>
+<div id="dash" class="hud" hidden>
+  <h3>Kim's dashboard</h3>
+  <div class="row"><span>Courses live</span><b id="dCourses">12</b></div>
+  <div class="row"><span>Hours of content</span><b id="dHours">19</b></div>
+  <div class="row"><span>Completion rate</span><b>100%</b></div>
+  <div class="row"><span>Behaviour changed</span><b class="muted">not tracked</b></div>
+  <div class="row"><span>Colleague trust</span><b id="dTrust">60</b></div>
+  <div class="row"><span>Quarter target</span><b id="dTarget">12 / 40</b></div>
+  <div class="row new" id="dTimeRow" hidden><span>Learner time / week</span><b>12 min</b></div>
+</div>
+<div id="inbox" class="hud" hidden><div class="head">Requests <span id="inCount">0</span></div></div>
+<div id="subs" class="hud"></div>
+<div id="craft" class="hud" hidden><i id="craftBar"></i></div>
+<div id="voiceNote" class="hud" hidden>The narrator's voice didn't play in this browser, so the story runs on subtitles. Chrome and Edge usually have the voice; check the volume too.</div>
+<div id="tags"></div>
+<div id="guide" class="hud" hidden><svg viewBox="0 0 40 40" width="46" height="46" id="guideArrow" aria-hidden="true"><path d="M20 3 L34 31 L20 24 L6 31 Z" style="fill:var(--chalk);stroke:var(--ink);stroke-width:1.5"/></svg><span id="guideTxt"></span></div>
+<section id="pc" hidden>
+  <div class="pc-frame" id="pcFrame">
+    <div class="os" id="os">
+      <div class="icons">
+        <button class="ico" id="icoMail" type="button"><span class="glyph">@</span>Mail<i id="mailBadge" hidden>0</i></button>
+        <button class="ico" id="icoCraft" type="button"><span class="glyph">&#9638;</span>CourseCraft</button>
+        <button class="ico gen" id="icoGen" type="button" hidden><span class="glyph">&#10022;</span>CourseGen</button>
+        <div class="ico dead"><span class="glyph">&#9636;</span>Recycle Bin</div>
+      </div>
+      <div class="osw" id="wMail">
+        <header class="tb"><span>Mail &middot; kim@company.local</span><button class="tbx" type="button" data-min="mail" aria-label="Minimise Mail">_</button></header>
+        <div class="mail-body"><ul id="mailList"></ul><article id="mailRead"></article></div>
+      </div>
+      <div class="osw" id="wCraft">
+        <header class="tb"><span>CourseCraft 2.1</span><button class="tbx" type="button" data-min="craft" aria-label="Minimise CourseCraft">_</button></header>
+        <div class="pc-main">
+          <div class="brief"><small id="briefFrom">Request</small><b id="briefText"></b><span id="briefMeta"></span></div>
+          <div class="due" id="due" hidden><span id="dueTxt"></span><div class="track"><i id="dueBar"></i></div></div>
+          <div id="slots"></div>
+          <div class="meter" id="meter"><div class="track"><i id="meterBar"></i></div><span id="meterTxt"></span></div>
+          <div class="pc-actions"><button class="pc-btn" id="publish" type="button">Publish</button><button class="pc-btn gen" id="gen" type="button" hidden>&#10022; Generate course</button><small id="pcHint">Read the brief in Mail. Pick one card per column.</small></div>
+          <div class="check" id="check"></div>
+        </div>
+      </div>
+      <button class="toast" id="toast" type="button" hidden></button>
+      <div id="pcWins"></div>
+    </div>
+    <div class="taskbar">
+      <span class="start">KimOS</span>
+      <button class="task" id="tMail" type="button">Mail <b id="pcCount">0</b></button>
+      <button class="task" id="tCraft" type="button">CourseCraft</button>
+      <span class="tray" id="tray">Trust <b id="pcTrust">60</b> &middot; Target <b id="pcTarget">12/40</b> &middot; <span id="pcClock">09:12</span></span>
+    </div>
+  </div>
+</section>
+<div id="prompt" class="hud"></div>
+<div id="big" class="hud"></div>
+<button id="skip" type="button" hidden>Skip line<kbd>Space</kbd></button>
+<div id="call" class="hud" hidden><span>Incoming call</span><b>Sam, night shift</b><span id="callHint">press E to answer</span></div>
+<div id="unlock" class="hud" hidden><div class="eyebrow">New tool unlocked</div><b>Actual Conversations</b><p>Checks whether something should be made, before anyone makes it.</p></div>
+<div id="choices" hidden></div>
+<div id="fade"></div>
+<div id="touch" hidden><div id="stick"></div><button id="tGen" type="button" hidden>Generate</button></div>
+
+<section id="title" class="screen">
+  <div class="card">
+    <div class="eyebrow">An experiment in learning strategy · about 10 minutes · 4 endings</div>
+    <h1>The Slop <em>Mountain</em></h1>
+    <p class="lede">A learning designer named Kim makes courses by hand, slowly, until a tool arrives that makes one in eleven seconds. The narrator knows exactly how this goes. Kim might not.</p>
+    <ul class="keys">
+      <li><kbd id="kbMove">W A S D</kbd>walk</li>
+      <li><kbd>mouse</kbd>look</li>
+      <li><kbd>E</kbd>use, generate, talk</li>
+      <li><kbd>1 2</kbd>choose</li>
+      <li><kbd>Space</kbd>skip a line</li>
+      <li><kbd>V</kbd>narrator voice</li>
+      <li><kbd>G</kbd>PS1 graphics on/off</li>
+      <li><kbd>N</kbd>soundtrack on/off</li>
+    </ul>
+    <fieldset class="kb" id="kbPick"><legend>Your keyboard</legend>
+      <label><input type="radio" name="kb" value="qwerty" checked> QWERTY <small>W A S D</small></label>
+      <label><input type="radio" name="kb" value="azerty"> AZERTY <small>Z Q S D</small></label>
+    </fieldset>
+    <div class="btnrow">
+      <button class="btn" id="begin" type="button">Begin</button>
+      <label class="toggle"><input type="checkbox" id="voice" checked> Read the narration aloud</label>
+      <button class="voicetest" id="voiceTest" type="button">Test the voice</button>
+      <label class="toggle"><input type="checkbox" id="ps1" checked> PS1 graphics</label>
+      <label class="toggle"><input type="checkbox" id="music" checked> Soundtrack</label><span id="voiceRes" aria-live="polite"></span>
+    </div>
+    <p class="credit" id="titleFound"></p>
+  </div>
+</section>
+
+<section id="ending" class="screen" hidden>
+  <div class="card">
+    <div class="eyebrow" id="eNum">Ending</div>
+    <h2 id="eTitle"></h2>
+    <p class="lede" id="eText"></p>
+    <p class="lesson" id="eLesson"></p>
+    <div class="eyebrow" style="margin-bottom:8px">Endings found</div>
+    <ul class="found" id="eFound"></ul>
+    <div class="btnrow">
+      <button class="btn" id="again" type="button">Start again</button>
+    </div>
+    <p class="credit">The Slop Mountain · an experiment by Yannick, learning strategist · after “The Mountain of Enshittification”</p>
+  </div>
+</section>
+
+<script src="vendor/three.r128.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

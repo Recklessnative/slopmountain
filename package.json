@@ -1,0 +1,15 @@
+{
+  "name": "slop-mountain",
+  "private": true,
+  "version": "0.12.0",
+  "description": "A narrated first-person browser game about AI-generated content in L&D.",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "start": "node tools/build.mjs && node tools/serve.mjs",
+    "test": "node tools/build.mjs && node tests/playthrough.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}
