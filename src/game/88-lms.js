@@ -1,8 +1,9 @@
 /* ================= the LMS otherworld ================= */
 // Every course Kim publishes has to live somewhere. Thirty courses in, the notification chime swells like
-// Silent Hill's siren and the office peels away into the LMS: identical module rooms in rust and wet paper,
-// walked by the Completions. Kim can't fight them. She can hide, keep hold of her attention, and ask them a
-// real question, which turns them back into people. Three real questions open the exit.
+// Silent Hill's siren and the LMS shows itself for two seconds. At the peak Kim can climb into it: identical
+// module rooms in rust and wet paper, walked by the Completions. Kim can't fight them. She can hide, keep hold
+// of her attention, and ask them a real question, which turns them back into people. Each sticky note is one
+// question; three people freed open the exit, which comes out at the foot of the mountain.
 const LT = 2, ROOM = 5, LCELL = ROOM + 1, LW = 4 * LCELL + 1, WALL_H = 3.2;
 const LMS_O = new THREE.Vector3(260, 0, -40);
 const lms = new THREE.Group(); lms.visible = false; scene.add(lms);
@@ -10,10 +11,10 @@ const hemi = scene.children.find(o => o.isHemisphereLight);
 
 /* the level, as data: a 4 x 4 grid of module rooms, [row, col], row 0 is north */
 const LMS_ROOMS = [
-  { at: [3, 1], name: 'Module 30 · Your Learning', doors: 'new', start: true, items: [['kimdesk', 1, 2], ['poster', 's', -2.6, 'LEARNING IS OUR #1 PRIORITY']] },
+  { at: [3, 1], name: 'Module 30 · Your Learning', doors: 'new', start: true, items: [['kimdesk', 1, 2, 0], ['poster', 's', -2.6, 'LEARNING IS OUR #1 PRIORITY']] },
   { at: [3, 0], name: 'Module 7 · Compliance Refresher Refresher', doors: 'en', items: [['desk', 1, 1], ['desk', 3, 3], ['screen', 'w', 0], ['chairs', 3]] },
   { at: [3, 2], name: 'Module 12 · The Mindset of Growth Mindsets', doors: 'we', items: [['chairs', 1], ['chairs', 3], ['screen', 'n', 0], ['desk', 1, 4], ['comp', 2, 2]] },
-  { at: [3, 3], name: 'Module 4 · The Expense Tool, Every Screen', doors: 'wn', items: [['desk', 3, 3, 0], ['desk', 1, 1], ['screen', 'e', 1.5], ['screen', 's', -2], ['poster', 'w', 2, 'Completion rate: 100%', 'red']] },
+  { at: [3, 3], name: 'Module 4 · The Expense Tool, Every Screen', doors: 'wn', items: [['desk', 3, 3], ['desk', 1, 1], ['screen', 'e', 1.5], ['screen', 's', -2], ['poster', 'w', 2, 'Completion rate: 100%', 'red']] },
   { at: [2, 0], name: 'Module 19 · Microlearning, Part 1 of 40', doors: 'sne', items: [['chairs', 3], ['screen', 'w', -1.5], ['desk', 1, 0], ['comp', 2, 1]] },
   { at: [2, 1], name: 'Module 2 · Welcome to the Welcome', doors: 'snwe', items: [['screen', 'w', 2.4], ['screen', 'e', -2.4], ['desk', 0, 4], ['desk', 4, 0]] },
   { at: [2, 2], name: 'Module 23 · Engagement', doors: 'wn', items: [['desk', 1, 1], ['desk', 3, 1], ['desk', 1, 3], ['desk', 3, 3], ['poster', 'e', 0, 'Content is king', 'red']] },
@@ -26,14 +27,19 @@ const LMS_ROOMS = [
   { at: [0, 3], name: '', doors: 's', exit: true, items: [] }
 ];
 const QUESTIONS = ['What goes wrong today?', 'Which ones do new hires actually use?', 'Mandatory by law, or by habit?'];
+// the first three belong to the stakeholders Kim would otherwise have to talk round: Finance, HR, Legal
 const FREED = [
   { who: 'Jan, accounts payable', t: 'Oh. Hello. I only ever needed to know which form to use.' },
-  { who: 'Ana, night shift', t: 'I did all forty-seven modules. Nobody asked me a single thing until now.' },
   { who: 'Tom, new starter', t: 'Is it Monday? I’ve been onboarding since March.' },
-  { who: 'Noor, customer service', t: 'Thank you. I’d forgotten I was allowed to ask that.' },
-  { who: 'Marco, sales', t: 'Wait, you’re from L&D? And you asked what I need?' },
-  { who: 'Lotte, team lead', t: 'I clicked Complete so many times I forgot what it was for.' }
+  { who: 'Noor, compliance', t: 'Thank you. I’d forgotten I was allowed to ask that.' }
 ];
+// what a freed person tells Kim next, depending on which note is still out there
+const DIRECTIONS = {
+  0: 'There’s a yellow note on your own desk. Back where you started.',
+  1: 'There’s another yellow note in Onboarding. North-west. Nobody comes back from onboarding.',
+  2: 'The last note is in Mandatory Training, where the pathway ends. Don’t stay for the video.',
+  pocket: 'You’ve still got a question in your pocket. Ask one of the others.'
+};
 const LMS_POPS = ['You have 3 overdue modules.', 'Reminder: Module 4 is still in progress.', 'New! 12 courses recommended for you.', 'Your certificate is ready. And another one.', 'Don’t forget: learning is your #1 priority.', 'Rate this experience: ★★★★★', 'You were assigned Module 31. And 32.', 'Your streak is at risk!'];
 
 /* tiles: 0 solid, 1 floor, 2 mandatory door, 3 exit door */
@@ -107,7 +113,7 @@ function drawMand(x, w, h, t) {
 }
 
 /* state */
-const L = { att: 100, qs: [], comps: [], freed: [], screens: [], notes: [], desks: [], pops: [], mShut: false, exitOpen: false, built: false, said: {}, path: [], pathSet: new Set(),
+const L = { att: 100, qs: [], used: 0, ckpt: null, scriptT: 0, comps: [], freed: [], screens: [], notes: [], desks: [], pops: [], mShut: false, exitOpen: false, built: false, said: {}, path: [], pathSet: new Set(),
   noiseT: 0, popT: 20, quietT: 0, mandT: 0, inMand: false, catching: 0, grace: 0, busy: false, crouch: false, vidK: 0, vidT: 0, clickT: 0, shiftT: 0, exitSign: null, mDoor: null, xDoor: null, exitLight: null, freedN: 0 };
 const PAPER_FIG = { skin: '#d9d2c0', hair: '#d9d2c0', shirt: '#d9d2c0', pants: '#cfc8b6' };
 
@@ -211,7 +217,7 @@ function buildLMS() {
     return { pv, sign, x, z };
   };
   L.mDoor = mk(mand, 'MANDATORY TRAINING', '#5a1410'); L.mDoor.pv.rotation.y = 1.45;
-  L.xDoor = mk(LMS_ROOMS.find(R => R.exit), 'EXIT COURSE · 0 of 3 real questions', '#26302a');
+  L.xDoor = mk(LMS_ROOMS.find(R => R.exit), 'EXIT COURSE · 0 of 3 learners freed', '#26302a');
   L.built = true;
 }
 function addNote(i, x, y, z) {
@@ -222,7 +228,7 @@ function addNote(i, x, y, z) {
   L.notes.push({ i, g, hl, x, z, taken: false });
 }
 function setExitSign() {
-  const n = L.qs.length, s = L.xDoor.sign, txt = n >= 3 ? 'EXIT COURSE · open' : `EXIT COURSE · ${n} of 3 real questions`;
+  const n = L.freedN, s = L.xDoor.sign, txt = n >= 3 ? 'EXIT COURSE · open' : `EXIT COURSE · ${n} of 3 learners freed`;
   const c = textCanvas(txt, { font: 'IM Fell English', size: 56, maxW: 900, bg: n >= 3 ? '#2a5a3a' : '#26302a', color: '#efe4d0', pad: 18 });
   s.material.map.dispose(); s.material.map = new THREE.CanvasTexture(c); s.geometry.dispose(); s.geometry = new THREE.PlaneGeometry(.36 * c.width / c.height, .36);
 }
@@ -237,16 +243,25 @@ function makeCompletion(x, z) {
   g.scale.set(.94, 1.1, .94); g.position.set(x, 0, z); lms.add(g);
   return { g, x, z, yaw: Math.random() * 6.3, state: 'wander', path: null, t: 0, rep: 0, lost: 0, last: null, sated: 0, tap: Math.random() * 3, seen: false };
 }
-function resetLMS() {
-  L.comps.forEach(c => { const k = people.indexOf(c.g); if (k >= 0) people.splice(k, 1); lms.remove(c.g); });
+// keep = start again from the last checkpoint: notes found and people freed stay done
+function resetLMS(keep) {
+  const ck = keep ? L.ckpt : null;
+  L.comps.forEach(c => { const k = people.indexOf(c.g); if (k >= 0) people.splice(k, 1); if (c.g.parent) c.g.parent.remove(c.g); });
   L.freed.forEach(p => { removeTags(t => t.obj === p); const k = people.indexOf(p); if (k >= 0) people.splice(k, 1); lms.remove(p); });
   L.pops.forEach(p => p.el.remove());
-  Object.assign(L, { att: 100, qs: [], comps: [], freed: [], pops: [], mShut: false, exitOpen: false, said: {}, noiseT: 0, popT: 22, quietT: 0, mandT: 0, inMand: false, catching: 0, grace: 0, busy: false, crouch: false, shiftT: 0, freedN: 0, extra: false, mandDone: false });
+  Object.assign(L, { att: 100, qs: [], used: 0, ckpt: ck, scriptT: 0, comps: [], freed: [], pops: [], mShut: false, exitOpen: false, said: {}, noiseT: 0, popT: 22, quietT: 0, mandT: 0, inMand: false, catching: 0, grace: 0, busy: false, crouch: false, shiftT: 0, freedN: 0, extra: false, mandDone: false, clockTxt: '' });
   if (!L.built) return;
   L.notes.forEach(n => { n.taken = false; n.g.visible = true; });
   L.screens.forEach(s => { s.on = true; s.pl.material.map = vidTex; s.pl.material.color.setHex(0xffffff); s.gl.visible = true; });
-  L.mDoor.pv.rotation.y = 1.45; L.xDoor.pv.rotation.y = 0; L.exitLight.intensity = 0; setExitSign();
+  L.mDoor.pv.rotation.y = 1.45; L.xDoor.pv.rotation.y = 0; L.exitLight.intensity = 0;
   for (const R of LMS_ROOMS) (R.spawns || []).forEach(([x, z]) => L.comps.push(makeCompletion(x, z)));
+  if (ck) {
+    L.qs = ck.qs.slice(); L.used = ck.used; L.freedN = ck.freedN;
+    L.notes.forEach(n => { if (L.qs.includes(n.i)) { n.taken = true; n.g.visible = false; } });
+    L.comps.splice(0, ck.freedN).forEach(c => { const k = people.indexOf(c.g); if (k >= 0) people.splice(k, 1); lms.remove(c.g); });
+    if (L.freedN >= 3) openExit(true);
+  }
+  setExitSign();
   ['#att', '#rq', '#vig', '#mvid'].forEach(s => $(s).hidden = true); renderRQ();
 }
 
@@ -263,33 +278,54 @@ function chimeSwell(dur) {
   g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.09, t + dur * .9); g.gain.exponentialRampToValueAtTime(.0001, t + dur + 1.2);
   o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + dur + 1.3);
 }
-function otherworld() {
+/* thirty courses in, the LMS shows itself for two seconds, then lets Kim pretend she didn't see it */
+function glimpse() {
   phase = 'shift'; S.auto = false; frozen = true; S.fountain = 0; L.shiftT = 0;
-  inboxEl.hidden = true; $('#dash').hidden = true; if (document.pointerLockElement) document.exitPointerLock();
-  soundtrack('peak'); droneTo(.06, 46);
+  if (document.pointerLockElement) document.exitPointerLock();
+  droneTo(.06, 46);
   say([
     'Thirty courses. Kim had never once looked inside one of them.',
-    { t: 'Then Kim heard it. The notification chime. Not one notification. All of them.', fx: () => { chimeSwell(8); L.shiftT = .0001; } }
+    { t: 'Then Kim heard it. The notification chime. Not one notification. All of them.', fx: () => { chimeSwell(6); L.shiftT = .0001; } }
   ], () => {
-    $('#fade').classList.add('on');
-    setTimeout(() => { enterLMS(); $('#fade').classList.remove('on'); }, 1400);
+    // a Completion, standing right there at the desk
+    const c = makeCompletion(player.x - Math.sin(player.yaw) * 2.4, player.z - Math.cos(player.yaw) * 2.4); world.add(c.g);
+    c.g.rotation.y = Math.atan2(player.x - c.x, player.z - c.z); noise(.6, 220, .14); blip(98, .9, .07);
+    setTimeout(() => {
+      const k = people.indexOf(c.g); if (k >= 0) people.splice(k, 1); world.remove(c.g);
+      phase = 'tool'; L.shiftT = 0; hemi.intensity = .62; scene.fog.color.copy(FOG_IN); scene.background.copy(FOG_IN);
+      noise(1.2, 900, .2); blip(1320, .05, .05);
+      say(['Kim decided she hadn’t seen that. It was easier than the alternative.'], () => { frozen = false; S.auto = true; S.autoT = .5; superpowers(); });
+    }, 2200);
   });
 }
 function enterLMS(retry) {
   phase = 'lms'; S.listening = false; world.visible = false; lms.visible = true; flying.length = 0; flyers.count = 0;
-  if (retry || !L.comps.length) resetLMS();
+  inboxEl.hidden = true; $('#dash').hidden = true; $('#guide').hidden = true;
+  if (retry || !L.comps.length) resetLMS(retry);
   hemi.intensity = .11; sun.intensity = 0;
   const st = L.path[0]; Object.assign(player, { x: tileC(st[0], LMS_O.x), z: tileC(st[1], LMS_O.z) - .2, yaw: 0, pitch: -.1 });
   ['#att', '#rq', '#vig'].forEach(s => $(s).hidden = false); renderRQ(); $('#cross').hidden = isTouch;
   radioOn(); if (radioHiss) radioHiss.g.gain.value = .004; soundtrack('lms'); droneTo(.05, 48);
   frozen = false; lock(); L.shiftT = 0;
   if (retry) { say(['Again, Kim opened her eyes in the LMS. The narrator will pretend not to have noticed.']); return; }
+  // the LMS states the goal itself, the way an LMS would
+  lmsPopup('Welcome back, Kim! To complete this course, free 3 learners with real questions. Estimated time: 12 minutes.', true);
   say([
-    'When Kim opened her eyes, the office was still there. Mostly.',
-    'This was the LMS. Every course Kim had ever published had to live somewhere.',
-    'A Learning Pathway glowed on the floor. Kim followed it, because that is what pathways are for.'
-  ]);
+    'When Kim opened her eyes, she was inside the mountain. Every course she had ever published had to live somewhere.',
+    'This was the LMS. Somewhere in here was the course Sam couldn’t find.',
+    'Kim had twelve minutes of attention left. Same as everyone else.',
+    'A Learning Pathway glowed on the floor. The narrator recommends it. The narrator has not been told where it goes.'
+  ], () => { L.scriptT = 3; });
 }
+/* the first scare is also the tutorial: a Completion crosses the next room, too far away to notice Kim */
+function crossing() {
+  const c = makeCompletion(tileC(7, LMS_O.x), tileC(15, LMS_O.z)); c.state = 'sated'; c.sated = 14; c.yaw = Math.PI / 2; c.path = pathTo(7, 15, 11, 15); L.comps.push(c);
+  L.said.saw = 1; noise(.5, 220, .1); blip(98, .9, .06);
+  say(['Something was walking between the modules. It had been a learner once. Now it was a completion.', 'Kim did not want to be seen. Under a desk seemed sensible. It usually does.']);
+}
+/* out at the foot of the mountain, at dusk, with the people Kim freed */
+const lmsWalkers = [];
+function clearWalkers() { lmsWalkers.forEach(p => { removeTags(t => t.obj === p); const k = people.indexOf(p); if (k >= 0) people.splice(k, 1); world.remove(p); }); lmsWalkers.length = 0; }
 function exitLMS() {
   if (phase !== 'lms') return; phase = 'shift'; frozen = true; L.busy = true;
   chime(.06, 1); setTimeout(() => chime(.05, .8), 300);
@@ -297,27 +333,36 @@ function exitLMS() {
   setTimeout(() => {
     lms.visible = false; world.visible = true; hemi.intensity = .62; sun.intensity = .32; applyLook(); radioOff(); flash.distance = 30; subs.style.filter = '';
     ['#att', '#rq', '#vig', '#mvid', '#tCrouch'].forEach(s => $(s).hidden = true); L.pops.forEach(p => p.el.remove()); L.pops = [];
-    removeTags(t => L.freed.includes(t.obj));
-    Object.assign(player, { x: C.x, z: C.z + 2.6, yaw: 0, pitch: -.12, y: 1.7 }); L.crouch = false;
-    $('#fade').classList.remove('on'); $('#dash').hidden = false; inboxEl.hidden = false; soundtrack('gen');
+    removeTags(t => L.freed.includes(t.obj)); L.crouch = false;
+    // the three conversations the freed people stand for have already happened: half the mountain is gone
+    const k = 3 / TALKS.length, toP = Math.round(Ppeak * Math.pow(1 - k, 1.3));
+    H = Hpeak * (1 - k); while (paperCount > toP) removePaper(); updateTerrain(); updatePapers(); updateDash(Math.max(2, Math.round(coursesShown * .5)));
+    S.talkIdx = 3; phase = 'talk'; soundtrack('hope'); $('#tGen').textContent = 'Talk';
+    const z = C.z + Math.max(6, R * .8); Object.assign(player, { x: C.x, z, yaw: 0, pitch: -.05, y: hAt(C.x, z) + 1.7 });
+    FREED.forEach((F, i) => { const p = person({ ...STYLES[(i + 1) % STYLES.length], who: F.who }); p.position.set(C.x + (i - 1) * 1.7, 0, z + 2.4 + (i % 2) * .7); world.add(p); addTag(p, F.who, 2.05, 'name'); lmsWalkers.push(p); });
+    $('#fade').classList.remove('on'); $('#dash').hidden = false;
     say([
-      'Kim stepped out of the LMS and back into the office, and the chime went quiet.',
-      'She still had the questions. She just hadn’t asked anyone a real one yet. Not out here.',
-      'The laptop, meanwhile, had kept going without her.'
-    ], () => { frozen = false; S.auto = true; S.autoT = .5; superpowers(); });
+      'Kim climbed out at the foot of the mountain. It was getting dark. Three people walked out behind her.',
+      them('Finance', 'Jan told me. We don’t need a course.'),
+      them('HR', 'Tom says a buddy beats forty modules. Fine.'),
+      them('Legal', 'Noor read the actual law. One page and a signature.'),
+      'Half the mountain was already gone. Three conversations had happened without her. That was the idea.'
+    ], () => { frozen = false; L.busy = false; spawnTalker(); });
   }, 1200);
 }
 
 /* the HUD bits */
+// the sticky notes in Kim's pocket, used ones ticked off, and one line that always says what to do next
 function renderRQ() {
   const ol = $('#rqList'); ol.innerHTML = '';
-  for (let i = 0; i < 3; i++) { const li = document.createElement('li'); li.textContent = L.qs.includes(i) ? QUESTIONS[i] : '…'; li.className = L.qs.includes(i) ? 'got' : ''; ol.appendChild(li); }
+  for (let i = 0; i < 3; i++) { const li = document.createElement('li'), q = L.qs[i]; li.textContent = q == null ? '?' : QUESTIONS[q]; li.className = q == null ? '' : i < L.used ? 'got used' : 'got'; ol.appendChild(li); }
+  $('#obj').textContent = L.exitOpen ? 'The exit is open · north-east' : L.used < L.qs.length ? `Ask a Completion your question · ${L.freedN} of 3 freed` : `Find a yellow note · ${L.freedN} of 3 freed`;
 }
-function lmsPopup(text) {
+function lmsPopup(text, welcome) {
   if (L.pops.length >= 3) return;
-  const el = document.createElement('button'); el.type = 'button'; el.className = 'lpop';
-  el.innerHTML = '<small>LMS · notification</small>'; el.appendChild(document.createTextNode(text));
-  el.style.left = (12 + Math.random() * 56) + '%'; el.style.top = (14 + Math.random() * 44) + '%';
+  const el = document.createElement('button'); el.type = 'button'; el.className = 'lpop' + (welcome ? ' welcome' : '');
+  el.innerHTML = `<small>LMS · ${welcome ? 'welcome' : 'notification'}</small>`; el.appendChild(document.createTextNode(text));
+  if (!welcome) { el.style.left = (12 + Math.random() * 56) + '%'; el.style.top = (14 + Math.random() * 44) + '%'; }
   const p = { el }; el.addEventListener('click', () => closePop(p)); $('#lmsPops').appendChild(el); L.pops.push(p);
   chime(.05, 1);
 }
@@ -326,7 +371,10 @@ function closePop(p) {
   L.pops.splice(k, 1); p.el.classList.add('out'); setTimeout(() => p.el.remove(), 250); gain(5); blip(520, .08, .04);
   if (!L.said.pop) { L.said.pop = 1; say(['Kim closed the notification. It felt like putting something down.']); }
 }
-function gain(d) { L.att = Math.max(0, Math.min(100, L.att + d)); }
+function gain(d) { L.att = Math.max(0, Math.min(100, L.att + d)); if (Math.abs(d) >= 4) attDelta(d); }
+const clockOf = a => { const s = Math.round(Math.abs(a) * 7.2); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+// attention is twelve minutes, like everyone else's: show each gain or loss as time
+function attDelta(d) { const el = document.createElement('b'); el.className = 'attd' + (d < 0 ? ' neg' : ''); el.textContent = (d < 0 ? '−' : '+') + clockOf(d); $('#att').appendChild(el); setTimeout(() => el.remove(), 1700); }
 
 /* the action key */
 function nearNote() { return L.notes.find(n => !n.taken && Math.hypot(player.x - n.x, player.z - n.z) < 1.7); }
@@ -339,7 +387,7 @@ function nearComp() {
 function lmsAction() {
   if (frozen || L.busy || L.catching) return;
   const n = nearNote(); if (n) return takeNote(n);
-  const c = L.qs.length && nearComp(); if (c) return ask(c);
+  const c = L.used < L.qs.length && nearComp(); if (c) return ask(c);
   const s = nearScreen(); if (s) return screenOff(s);
 }
 function takeNote(n) {
@@ -347,15 +395,17 @@ function takeNote(n) {
   blip(660, .2, .05); setTimeout(() => blip(880, .3, .05), 140);
   const k = L.qs.length;
   const lines = [
-    ['A sticky note, in Kim’s own handwriting. From before CourseGen. Before everything.', `It said: ${QUESTIONS[n.i]} Kim had forgotten she used to ask that.`, 'A real question. In here, it might be the only thing that works.'],
+    ['A sticky note, in Kim’s own handwriting. From before CourseGen. Before everything.', `It said: ${QUESTIONS[n.i]} Kim had forgotten she used to ask that.`, 'A real question. If Kim got close enough to one of them, she could ask it.'],
     [`Another one. ${QUESTIONS[n.i]} Nobody had asked the LMS that in years.`],
-    [`${QUESTIONS[n.i]} Kim put it in her pocket, next to the others.`, 'Three real questions. Somewhere, a door unlocked. The LMS did not like that at all.']
+    [`${QUESTIONS[n.i]} Kim put it in her pocket, next to the others.`]
   ][k - 1];
   say(lines);
-  if (k === 3) {
-    L.exitOpen = true; L.xDoor.pv.rotation.y = -1.4; L.exitLight.intensity = 1.1; noise(1.2, 160, .14); chimeSwell(4);
-    const [cx, cz] = roomCentre(2, 2); const c = makeCompletion(cx, cz); c.state = 'hear'; c.last = { x: player.x, z: player.z }; L.comps.push(c); L.extra = true;
-  }
+}
+function openExit(quiet) {
+  L.exitOpen = true; L.xDoor.pv.rotation.y = -1.4; L.exitLight.intensity = 1.1; setExitSign(); renderRQ();
+  if (quiet) return;
+  noise(1.2, 160, .14); chimeSwell(4);
+  const [cx, cz] = roomCentre(2, 2); const c = makeCompletion(cx, cz); c.state = 'hear'; c.last = { x: player.x, z: player.z }; L.comps.push(c); L.extra = true;
 }
 function screenOff(s) {
   s.on = false; s.pl.material.map = null; s.pl.material.color.setHex(0x050505); s.pl.material.needsUpdate = true; s.gl.visible = false; gain(8); noise(.12, 3000, .05); blip(180, .1, .04);
@@ -363,8 +413,8 @@ function screenOff(s) {
 }
 function ask(c) {
   L.busy = true; frozen = true; c.state = 'asked'; c.path = null;
-  const q = QUESTIONS[L.qs[L.freedN % L.qs.length]], F = FREED[L.freedN % FREED.length]; L.freedN++;
-  const first = !L.said.freed; L.said.freed = 1;
+  const q = QUESTIONS[L.qs[L.used]], F = FREED[L.freedN % FREED.length]; L.used++; L.freedN++; renderRQ();
+  const first = !L.said.freed, n = L.freedN; L.said.freed = 1;
   say([kim(q)], () => {
     // the paper falls away, and there is a person underneath
     for (let i = 0; i < 12; i++) launchSheet('away', new THREE.Vector3(c.x + (Math.random() - .5) * .4, .6 + Math.random() * 1.4, c.z + (Math.random() - .5) * .4));
@@ -372,8 +422,12 @@ function ask(c) {
     const k = people.indexOf(c.g); if (k >= 0) people.splice(k, 1); lms.remove(c.g); L.comps.splice(L.comps.indexOf(c), 1);
     const p = person({ ...STYLES[L.freedN % STYLES.length], who: F.who }); p.position.set(c.x, 0, c.z); lms.add(p); L.freed.push(p);
     const tg = addTag(p, F.who, 2.05, 'name'); tg.los = true;
-    gain(15);
-    say([them(F.who, F.t), ...(first ? ['The paper fell away. Underneath was a person. There had always been a person.'] : [])], () => { L.busy = false; frozen = false; });
+    gain(15); setExitSign(); L.ckpt = { qs: L.qs.slice(), used: L.used, freedN: L.freedN };
+    const lines = [them(F.who, F.t)];
+    if (first) lines.push('The paper fell away. Underneath was a person. There had always been a person.');
+    if (n >= 3) lines.push({ t: 'Three people. Somewhere, a door unlocked. The LMS did not like that at all.', fx: () => openExit() }, 'North-east, past the Exit Survey. Of course the way out was through the exit survey.');
+    else { const next = L.notes.find(x => !x.taken); lines.push(them(F.who, next ? DIRECTIONS[next.i] : DIRECTIONS.pocket)); }
+    say(lines, () => { L.busy = false; frozen = false; });
   });
 }
 
@@ -415,7 +469,7 @@ function wanderTarget(c) {
   if (!opts.length) return; const j = opts[(Math.random() * opts.length) | 0]; c.path = pathTo(tileX(c.x), tileZ(c.z), j % LW, (j / LW) | 0);
 }
 function catchKim(c) {
-  L.catching = 4.5; frozen = true; c.state = 'sated'; c.sated = 9; c.path = null; c.direct = null;
+  L.catching = 4.5; L.attAtCatch = L.att; frozen = true; c.state = 'sated'; c.sated = 9; c.path = null; c.direct = null;
   const mv = $('#mvid'); mv.hidden = false; $('#mvidBar').style.width = '0%';
   noise(.6, 300, .16); blip(110, .8, .08); chime(.07, .7);
   if (!L.said.caught) { L.said.caught = 1; say(['It showed Kim a mandatory video. There was no skip button. There is never a skip button.']); }
@@ -435,7 +489,7 @@ function updateLMS(dt) {
   }
   if (R && R.exit && L.exitOpen) return exitLMS();
   updateMandatory(dt, R && R.mandatory);
-  if (!L.exitOpen && !L.said.locked && Math.hypot(player.x - L.xDoor.x, player.z - L.xDoor.z) < 3 && !talking) { L.said.locked = 1; say(['The exit was locked. The sign wanted three real questions. Kim did not have them yet.']); }
+  if (!L.exitOpen && !L.said.locked && Math.hypot(player.x - L.xDoor.x, player.z - L.xDoor.z) < 3 && !talking) { L.said.locked = 1; say(['The exit was locked. The sign wanted three learners, freed. Kim had not freed them yet.']); }
   // noise Kim makes, and who hears it
   const moving = S.bobAmt > .3, running = moving && keys.shift && !L.crouch;
   L.noiseT -= dt;
@@ -446,6 +500,7 @@ function updateLMS(dt) {
   // the Completions
   let nearest = 99, stalking = false;
   if (L.grace > 0) L.grace -= dt;
+  if (L.scriptT > 0) { L.scriptT -= dt; if (L.scriptT <= 0 && !L.said.saw) crossing(); }
   for (const c of L.comps) {
     const d = Math.hypot(c.x - player.x, c.z - player.z); nearest = Math.min(nearest, d);
     const u = c.g.userData;
@@ -483,7 +538,13 @@ function updateLMS(dt) {
   // attention: drains slowly, fast near Completions, screens and notifications; quiet brings it back
   let drain = .25 + Math.max(0, (7 - nearest) / 7) * 3 + L.pops.length * .7;
   for (const s of L.screens) if (s.on) { const d = Math.hypot(player.x - s.x, player.z - s.z); if (d < 4.5) drain += 1.3 * (1 - d / 4.5); }
-  if (L.catching) { drain += 5; L.catching -= dt; $('#mvidBar').style.width = Math.min(100, (1 - L.catching / 4.5) * 100) + '%'; if (L.catching <= 0) { L.catching = 0; L.grace = 3; $('#mvid').hidden = true; if (!L.busy) frozen = false; } }
+  if (L.catching) {
+    drain += 5; L.catching -= dt; $('#mvidBar').style.width = Math.min(100, (1 - L.catching / 4.5) * 100) + '%';
+    if (L.catching <= 0) {
+      L.catching = 0; L.grace = 3; $('#mvid').hidden = true; if (!L.busy) frozen = false; attDelta(L.att - L.attAtCatch);
+      if (!L.said.cost && L.att > 0) { L.said.cost = 1; say(['That cost her nearly three minutes. It didn’t cost her everything.']); }
+    }
+  }
   const quiet = !moving && nearest > 9 && !L.pops.length && !L.screens.some(s => s.on && Math.hypot(player.x - s.x, player.z - s.z) < 5);
   L.quietT = quiet ? L.quietT + dt : 0;
   if (L.quietT > 1.2) drain -= 2.5;
@@ -495,6 +556,7 @@ function updateLMS(dt) {
   // what low attention looks like: dimmer torch, blurred edges, a quieter narrator
   const a = L.att / 100;
   $('#attBar').style.width = L.att.toFixed(1) + '%'; $('#att').className = 'hud' + (a < .3 ? ' low' : '') + (L.quietT > 1.2 && a < 1 ? ' quiet' : '');
+  const ct = `Kim’s attention · ${clockOf(L.att)}`; if (ct !== L.clockTxt) { L.clockTxt = ct; $('#attLbl').textContent = ct; }
   vig.style.opacity = Math.max(0, Math.min(1, (1 - a) * 1.4 - .15)).toFixed(2);
   subs.style.filter = a < .4 ? `blur(${((.4 - a) * 3).toFixed(2)}px)` : '';
   if (isTouch) $('#tCrouch').hidden = false;
@@ -525,7 +587,7 @@ function updateMandatory(dt, inside) {
 function becomeCompletion() {
   L.busy = true; frozen = true; L.att = 0; noise(2, 400, .15); chimeSwell(4);
   $('#fade').style.background = '#e2dccb'; $('#fade').classList.add('on');
-  say(['Kim’s attention ran out somewhere in Module 4.', 'She clicked Complete. It felt like nothing. That was how she knew it had worked.'], () => ending('completion'));
+  say(['Kim’s attention ran out somewhere between two modules.', 'She clicked Complete. It felt like nothing. That was how she knew it had worked.'], () => ending('completion'));
 }
 /* the look of the LMS: rust-black fog that closes in as attention drops */
 const FOG_LMS = new THREE.Color(0x140a07), FOG_RED = new THREE.Color(0x3a0c08);
