@@ -67,7 +67,7 @@ function fork(back) {
   const yaw = player.yaw, px = player.x, pz = player.z, at = (a, d) => [px - Math.sin(yaw + a) * d, pz - Math.cos(yaw + a) * d];
   spawnTalker();
   // the hole: a dark gap in the paper, with the Learning Pathway glowing down into it and the chime coming up
-  const [hx, hz] = at(1.1, 3.6); hole = { x: hx, z: hz };
+  const [hx, hz] = at(1.1, 2.8); hole = { x: hx, z: hz };
   const pit = new THREE.Mesh(new THREE.CircleGeometry(1.15, 18), new THREE.MeshBasicMaterial({ color: 0x050302 })); pit.rotation.x = -Math.PI / 2; pit.position.set(hx, hAt(hx, hz) + .25, hz); forkFx.add(pit);
   halo(forkFx, 0x3fc8b0, 3.2, 3.2, hx, hAt(hx, hz) + .5, hz, .4);
   for (let i = 0; i < 8; i++) {
@@ -75,7 +75,7 @@ function fork(back) {
     const seg = new THREE.Mesh(new THREE.PlaneGeometry(.22, Math.hypot(x1 - x0, z1 - z0) + .05), L.pathMat); seg.rotation.set(-Math.PI / 2, 0, Math.atan2(x1 - x0, z1 - z0)); seg.position.set(mx, hAt(mx, mz) + .3, mz); forkFx.add(seg);
   }
   // the laptop, still open, still sparkling
-  const [lx, lz] = at(-1.2, 3); peakLaptop = { x: lx, z: lz };
+  const [lx, lz] = at(-1.2, 2.4); peakLaptop = { x: lx, z: lz };
   const lap = new THREE.Group(); lap.position.set(lx, hAt(lx, lz) + .3, lz); lap.rotation.y = Math.atan2(px - lx, pz - lz); forkFx.add(lap);
   box(.5, .03, .36, 0, 0, 0, lap, lam({ color: 0x2a2a30 }));
   const scr = new THREE.Mesh(new THREE.PlaneGeometry(.48, .32), new THREE.MeshBasicMaterial({ map: screenTex('✦ CourseGen ✦ Generate more? ✦', '#d8b8ff') })); scr.position.set(0, .17, -.17); scr.rotation.x = -.25; lap.add(scr);
@@ -84,8 +84,7 @@ function fork(back) {
   for (const [x, z, t] of [[hx, hz, 'A hole in the mountain'], [lx, lz, 'CourseGen, still open']]) { const o = new THREE.Object3D(); o.position.set(x, hAt(x, z), z); forkFx.add(o); addTag(o, t, 1.4); }
   const lines = back ? ['Kim was back on the summit. The narrator remembers this part. The narrator has been here before.']
     : ['There were two ways off a mountain like this.', 'Kim could walk down it, one person at a time. Or she could find out what it was made of.', 'The laptop was still open, too. It always is.'];
-  say(lines, () => { frozen = false; S.forkLive = true; S.turnTo = Math.atan2(-(hx - player.x), -(hz - player.z)); lock(); });
-  player.pitch = Math.max(player.pitch, -.22);
+  say(lines, () => { frozen = false; S.forkLive = true; S.turnTo = Math.atan2(-(hx - player.x), -(hz - player.z)); S.turnPitch = Math.atan2(hAt(hx, hz) + .4 - player.y, Math.hypot(hx - player.x, hz - player.z)) * .8; lock(); });
 }
 function nearHole() { return hole && Math.hypot(player.x - hole.x, player.z - hole.z) < 2; }
 function nearLaptop() { return peakLaptop && Math.hypot(player.x - peakLaptop.x, player.z - peakLaptop.z) < 1.8; }
@@ -110,7 +109,7 @@ function intoHole() {
 // the idle timer starts once the narrator stops: a warning at 30 seconds, the laptop decides at 45
 function updateFork(dt, moving) {
   if (phase !== 'fork' || !S.forkLive) return;
-  if (S.turnTo != null) { let d = S.turnTo - player.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); player.yaw += d * Math.min(1, dt * 2.5); if (Math.abs(d) < .02) S.turnTo = null; }
+  if (S.turnTo != null) { let d = S.turnTo - player.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); player.yaw += d * Math.min(1, dt * 2.5); player.pitch += (S.turnPitch - player.pitch) * Math.min(1, dt * 2.5); if (Math.abs(d) < .02) S.turnTo = null; }
   if (frozen || talking) return;
   S.forkT = moving ? 0 : S.forkT + dt;
   if (S.forkT > 30 && !S.forkWarned) { S.forkWarned = true; say(['The laptop was still open. It would decide for her, if she let it.']); }
