@@ -81,7 +81,7 @@ function ring(r, cx, cy, parent, seg = 28, start = 0, end = Math.PI * 2) {
   return line(pts, parent);
 }
 function textCanvas(text, { font = 'IM Fell English', size = 80, color = '#f7ede2', maxW = 900, weight = '400', bg = null, pad = 20 } = {}) {
-  const c = document.createElement('canvas'), x = c.getContext('2d');
+  const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
   const f = `${weight} ${size}px "${font}", Georgia, serif`; x.font = f;
   const words = text.split(' '), lines = []; let cur = '';
   for (const w of words) { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
@@ -114,7 +114,7 @@ function stickFigure(parent, { x = 0, z = 0, pose = 'stand', tie = false, face =
 }
 /* ---- PS1 Silent Hill materials: small nearest-filtered canvas textures, Gouraud-lit ---- */
 function cnv(w, h, draw, rx = 1, ry = 1) {
-  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d', { willReadFrequently: true }), w, h);
   const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
   if (rx !== 1 || ry !== 1) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); }
   return t;
