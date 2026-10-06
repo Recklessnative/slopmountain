@@ -69,19 +69,26 @@
 <button id="skip" type="button" hidden>Skip line<kbd>Space</kbd></button>
 <div id="call" class="hud" hidden><span>Incoming call</span><b>Sam, night shift</b><span id="callHint">press E to answer</span></div>
 <div id="unlock" class="hud" hidden><div class="eyebrow">New tool unlocked</div><b>Actual Conversations</b><p>Checks whether something should be made, before anyone makes it.</p></div>
+<div id="att" class="hud" hidden><span>Attention</span><div class="track"><i id="attBar"></i></div></div>
+<div id="rq" class="hud" hidden><h4>Real questions</h4><ol id="rqList"></ol></div>
+<div id="vig" hidden></div>
+<div id="lmsPops"></div>
+<div id="mvid" class="hud" hidden><div class="mv-top">MANDATORY · Information Security Awareness</div><div class="mv-play">&#9654;</div><div class="mv-bar"><i id="mvidBar"></i></div><div class="mv-skip">Skip: disabled</div></div>
 <div id="choices" hidden></div>
 <div id="fade"></div>
-<div id="touch" hidden><div id="stick"></div><button id="tGen" type="button" hidden>Generate</button></div>
+<div id="touch" hidden><div id="stick"></div><button id="tGen" type="button" hidden>Generate</button><button id="tCrouch" type="button" hidden>Crouch</button></div>
 
 <section id="title" class="screen">
   <div class="card">
-    <div class="eyebrow">An experiment in learning strategy · about 10 minutes · 4 endings</div>
+    <div class="eyebrow">An experiment in learning strategy · about 20 minutes · 6 endings</div>
     <h1>The Slop <em>Mountain</em></h1>
     <p class="lede">A learning designer named Kim makes courses by hand, slowly, until a tool arrives that makes one in eleven seconds. The narrator knows exactly how this goes. Kim might not.</p>
     <ul class="keys">
       <li><kbd id="kbMove">W A S D</kbd>walk</li>
       <li><kbd>mouse</kbd>look</li>
       <li><kbd>E</kbd>use, generate, talk</li>
+      <li><kbd>C</kbd>crouch</li>
+      <li><kbd>Shift</kbd>run</li>
       <li><kbd>1 2</kbd>choose</li>
       <li><kbd>Space</kbd>skip a line</li>
       <li><kbd>V</kbd>narrator voice</li>
@@ -112,6 +119,7 @@
     <div class="eyebrow" style="margin-bottom:8px">Endings found</div>
     <ul class="found" id="eFound"></ul>
     <div class="btnrow">
+      <button class="btn" id="retry" type="button" hidden>Back into the LMS</button>
       <button class="btn" id="again" type="button">Start again</button>
     </div>
     <p class="credit">The Slop Mountain · an experiment by Yannick, learning strategist · after “The Mountain of Enshittification”</p>

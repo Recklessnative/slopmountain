@@ -69,7 +69,7 @@ h2{font:400 clamp(42px,7vw,72px)/.95 var(--f-display);margin:.15em 0 .3em;text-w
 .toggle{font:400 12px var(--f-mono);color:var(--chalk-dim);display:flex;gap:8px;align-items:center;cursor:pointer}
 .toggle input{accent-color:var(--chalk)}
 .lesson{border-left:2px solid var(--chalk);padding:4px 0 4px 14px;margin:0 0 20px;font:700 clamp(19px,2.3vw,23px)/1.3 var(--f-hand)}
-.found{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 14px;margin:0 0 22px;padding:0;list-style:none;font:400 12px var(--f-mono);color:var(--chalk-dim)}
+.found{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 14px;margin:0 0 22px;padding:0;list-style:none;font:400 12px var(--f-mono);color:var(--chalk-dim)}
 .found li.got{color:var(--chalk)}
 .found li.got::before{content:'✓ '}
 .found li:not(.got)::before{content:'○ '}
@@ -258,3 +258,29 @@ h1{letter-spacing:.01em;font-weight:400}
 #tags{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
 .tag{position:absolute;left:0;top:0;font:400 13px/1.2 var(--f-hand);color:var(--chalk);background:rgba(12,10,8,.72);border:1px solid var(--chalk-dim);padding:3px 7px;white-space:nowrap;will-change:transform}
 .tag.name{font-size:15px;border-color:var(--bulb);color:var(--bulb)}
+
+/* the LMS otherworld: attention meter, real questions, pop-ups, the unskippable video */
+#att{top:calc(16px + env(safe-area-inset-top,0px));left:16px;width:min(260px,44vw);font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--chalk-dim)}
+#att .track{margin-top:6px;height:8px;border:1.5px solid var(--chalk-dim);background:rgba(12,10,8,.5)}
+#att .track i{display:block;height:100%;width:100%;background:var(--chalk);transition:width .2s linear}
+#att.low .track i{background:var(--warn);animation:attPulse .9s ease-in-out infinite}
+#att.quiet span::after{content:' · quiet';color:var(--bulb)}
+@keyframes attPulse{50%{opacity:.45}}
+#rq{top:calc(16px + env(safe-area-inset-top,0px));right:16px;width:min(280px,44vw);text-align:right}
+#rq h4{margin:0 0 6px;font:italic 400 20px/1 var(--f-display)}
+#rq ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+#rq li{font:400 15px/1.2 var(--f-hand);color:var(--chalk-faint);border-bottom:1px dashed var(--chalk-faint);padding:0 2px 2px}
+#rq li.got{color:#2a2018;background:#e8cf5a;border:0;padding:4px 8px;transform:rotate(-1.5deg);box-shadow:2px 2px 0 rgba(0,0,0,.4)}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:0;background:radial-gradient(ellipse at center,transparent 38%,rgba(30,6,4,.55) 70%,rgba(8,2,1,.95));
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-mask-image:radial-gradient(ellipse at center,transparent 35%,#000 75%);mask-image:radial-gradient(ellipse at center,transparent 35%,#000 75%)}
+#lmsPops{position:fixed;inset:0;pointer-events:none;z-index:6}
+.lpop{all:unset;box-sizing:border-box;position:absolute;pointer-events:auto;cursor:pointer;width:min(280px,calc(100vw - 32px));background:#e9e4d6;color:#1c1a17;border:2px solid #57524a;box-shadow:5px 5px 0 rgba(0,0,0,.5);padding:8px 12px 10px;font:600 15px/1.25 var(--f-hand);animation:pop .25s both}
+.lpop small{display:block;font:600 10px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#7a2a1a;margin-bottom:4px}
+.lpop.out{animation:out .25s ease-in both}
+#mvid{inset:0;display:grid;place-items:center;align-content:center;gap:14px;background:rgba(6,8,10,.9);z-index:7;font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase}
+#mvid .mv-play{font-size:64px;color:var(--chalk)}
+#mvid .mv-bar{width:min(520px,80vw);height:8px;background:#2a2e34}
+#mvid .mv-bar i{display:block;height:100%;width:0;background:var(--warn)}
+#mvid .mv-skip{color:var(--warn)}
+#tCrouch{position:fixed;right:16px;bottom:calc(150px + env(safe-area-inset-bottom,0px));pointer-events:auto;font:600 13px var(--f-mono);color:var(--chalk);background:rgba(12,10,8,.6);border:1.5px solid var(--chalk);border-radius:2px;padding:10px 14px}
+@media (max-width:620px){.found{grid-template-columns:repeat(2,minmax(0,1fr))}}

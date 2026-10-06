@@ -13,6 +13,8 @@ const THEMES = {
   super: { bpm: 132, vol: .5, chords: [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], pad: .035, arp: [0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 2, 1, 3], arpOct: 24, arpVol: .04, bass: [0, 2, 4, 6, 8, 10, 12, 14], kick: 'x...x...x...x...', snare: '....x.......x..x', hat: 'xxxxxxxxxxxxxxxx', hatVol: .012, trem: .018 },
   // peak slop: the music stops having ideas
   peak: { bpm: 44, vol: .38, chords: [[45, 52, 59, 60]], pad: .055 },
+  // the LMS: two chords a semitone apart, and a bell that never resolves
+  lms: { bpm: 46, vol: .4, chords: [[40, 46, 51], [41, 47, 52], [40, 46, 51], [39, 45, 50]], pad: .05, arp: [0, -1, -1, -1, -1, -1, -1, -1, 2, -1, -1, -1, -1, -1, -1, -1], arpOct: 24, arpVol: .022, hat: 'x...............', hatVol: .008 },
   // actual conversations: warm, major, unhurried
   hope: { bpm: 70, vol: .48, chords: [[48, 52, 55, 60], [47, 50, 55, 59], [45, 48, 52, 57], [41, 45, 48, 53]], pad: .04, arp: [0, -1, 1, -1, 2, -1, 3, -1, 2, -1, 1, -1, 2, -1, 3, -1], arpOct: 12, arpVol: .06, bass: [0] }
 };

@@ -12,15 +12,16 @@ function choose(opts) {
   if (!isTouch) setTimeout(() => box.querySelector('button')?.focus({ preventScroll: true }), 50);
 }
 function ending(id) {
-  if (S.ended) return; S.ended = true; soundtrack(id === 'better' ? 'hope' : id === 'more' ? 'super' : 'office'); frozen = true; sayToken++; if (synth) synth.cancel(); voStop();
+  if (S.ended) return; S.ended = true; soundtrack({ better: 'hope', more: 'super', completion: 'peak', mandatory: 'peak' }[id] || 'office'); frozen = true; sayToken++; if (synth) synth.cancel(); voStop();
   if (document.pointerLockElement) document.exitPointerLock();
   found.add(id); store.set('slop-endings-v2', [...found]);
   const E = ENDINGS[id];
-  $('#eNum').textContent = `Ending ${ORDER.indexOf(id) + 1} of 4 · ${found.size} found`;
+  $('#eNum').textContent = `Ending ${ORDER.indexOf(id) + 1} of ${ORDER.length} · ${found.size} found`;
   $('#eTitle').textContent = E.title; $('#eText').textContent = E.text.replace('{n}', (coursesShown + 1).toLocaleString('en-GB'));
   $('#eLesson').textContent = E.lesson; renderFound($('#eFound')); droneTo(0, 55);
   setTimeout(() => {
-    $('#ending').hidden = false; ['#cross', '#dash', '#inbox', '#tGen', '#craft', '#pc', '#guide'].forEach(s => $(s).hidden = true); subs.classList.remove('boxed');
+    $('#ending').hidden = false; ['#cross', '#dash', '#inbox', '#tGen', '#craft', '#pc', '#guide', '#att', '#rq', '#vig', '#mvid', '#tCrouch'].forEach(s => $(s).hidden = true); L.pops.forEach(p => p.el.remove()); L.pops = []; subs.style.filter = '';
+    $('#retry').hidden = id !== 'completion' && id !== 'mandatory'; subs.classList.remove('boxed');
     $('#big').classList.remove('on'); setPrompt(''); subs.style.opacity = 0; $('#again').focus({ preventScroll: true });
   }, 900);
 }

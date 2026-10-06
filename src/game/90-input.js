@@ -3,6 +3,7 @@ const keys = {};
 function actionKey() {
   if (phase === 'peak' && S.ringing) return answerPhone();
   if (phase === 'drive') return exitCar();
+  if (phase === 'lms') return lmsAction();
   if (phase === 'desk' && nearDesk()) return dive();
   if (phase === 'screen') return genClick();
   if (phase === 'tool' || phase === 'super') generate();
@@ -37,6 +38,8 @@ addEventListener('keydown', e => {
   keys[k] = true; S.idleT = 0;
   if (k === 'm' && phase === 'screen') { focusWin(S.win === 'mail' ? 'craft' : 'mail'); return; }
   if (k === 'n') { setMusic(!musicOn); return; }
+  if (k === 'c' && phase === 'lms' && !frozen && !e.repeat) { L.crouch = !L.crouch; noise(.08, 300, .03); return; }
+  if (k === 'f' && phase === 'lms' && !e.repeat) { closePop(); return; }
   if (k === 'g') { ps1 = !ps1; $('#ps1').checked = ps1; applyLook(); }
   if (k === 'v') { voiceOn = !voiceOn; $('#voice').checked = voiceOn; if (!voiceOn && synth) synth.cancel(); }
   if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
@@ -61,6 +64,7 @@ if (isTouch) {
   cv.addEventListener('touchend', end); cv.addEventListener('touchcancel', end);
   const tg = $('#tGen');
   tg.addEventListener('pointerdown', e => { e.preventDefault(); keys.e = true; S.idleT = 0; actionKey(); });
+  $('#tCrouch').addEventListener('pointerdown', e => { e.preventDefault(); if (phase === 'lms' && !frozen) L.crouch = !L.crouch; });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => tg.addEventListener(ev, () => keys.e = false));
 }
 function refreshPrompt() {
@@ -73,6 +77,14 @@ function refreshPrompt() {
   else if (phase === 'screen') p = '';
   else if (phase === 'tool') { p = `${K('E')}generate with AI`; btn = 'Generate'; }
   else if (phase === 'super') { p = `auto-generating · ${K('E')}even more`; btn = 'Generate'; }
+  else if (phase === 'lms') {
+    const n = nearNote(), c = L.qs.length && nearComp(), sc = nearScreen(), hid = lmsHidden();
+    if (n) { p = `${K('E')}pick up the note`; btn = 'Pick up'; }
+    else if (c) { p = `${K('E')}ask it a real question`; btn = 'Ask'; }
+    else if (sc) { p = `${K('E')}switch off the screen`; btn = 'Switch off'; }
+    else p = hid ? 'hidden under the desk' : L.crouch ? `crouching · ${K('C')}stand up` : `${K('C')}crouch · ${K('Shift')}run`;
+    if (L.pops.length) p += ` · ${K('F')}close the pop-up`;
+  }
   else if (phase === 'peak' && S.ringing) { p = `${K('E')}answer the phone`; btn = 'Answer'; }
   else if (phase === 'talk' && talker) { if (nearTalker()) { p = `${K('E')}talk to ${TALKS[S.talkIdx].who}`; btn = 'Talk'; } else p = `Walk over to ${TALKS[S.talkIdx].who}`; }
   setPrompt(p);

@@ -129,7 +129,7 @@ function removeTags(fn) { for (let i = tags.length - 1; i >= 0; i--) if (fn(tags
 function shown(o) { while (o) { if (!o.visible) return false; o = o.parent; } return true; }
 function updateTags() {
   for (const t of tags) {
-    if (!shown(t.obj) || S.ended || phase === 'screen') { t.d.style.display = 'none'; continue; }
+    if (!shown(t.obj) || S.ended || phase === 'screen' || (t.los && !lmsLOS(camera.position.x, camera.position.z, t.obj.position.x, t.obj.position.z))) { t.d.style.display = 'none'; continue; }
     _v.set(0, t.y, 0); t.obj.localToWorld(_v); const dist = _v.distanceTo(camera.position); _v.project(camera);
     if (_v.z > 1 || _v.z < -1 || dist > 120) { t.d.style.display = 'none'; continue; }
     t.d.style.display = 'block'; t.d.style.opacity = Math.max(.25, Math.min(1, 1.4 - dist / 90)).toFixed(2);

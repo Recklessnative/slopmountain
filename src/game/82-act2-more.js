@@ -27,7 +27,7 @@ function generate() {
     if (g >= 7) { popup(POPUPS[g % POPUPS.length]); $('#pcFrame').className = 'pc-frame shaky'; $('#pcFrame').style.setProperty('--j', Math.min(6, (g - 6) * .7).toFixed(1)); }
     if (g === 15) haywire();
   }
-  if (g === 30 && phase === 'tool') superpowers();
+  if (g === 30 && phase === 'tool') otherworld();
   if (g === 92 && phase === 'super') peak();
 }
 function superpowers() {
