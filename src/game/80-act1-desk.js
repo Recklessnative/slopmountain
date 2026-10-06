@@ -21,7 +21,7 @@ function ending(id) {
   $('#eLesson').textContent = E.lesson; renderFound($('#eFound')); droneTo(0, 55);
   setTimeout(() => {
     $('#ending').hidden = false; ['#cross', '#dash', '#inbox', '#tGen', '#craft', '#pc', '#guide', '#att', '#rq', '#vig', '#mvid', '#tCrouch'].forEach(s => $(s).hidden = true); L.pops.forEach(p => p.el.remove()); L.pops = []; subs.style.filter = '';
-    $('#retry').hidden = id !== 'completion' && id !== 'mandatory'; subs.classList.remove('boxed');
+    $('#retry').hidden = id !== 'completion' && id !== 'mandatory'; $('#summit').hidden = !S.reachedFork; subs.classList.remove('boxed');
     $('#big').classList.remove('on'); setPrompt(''); subs.style.opacity = 0; $('#again').focus({ preventScroll: true });
   }, 900);
 }
@@ -31,6 +31,8 @@ const TAGS = { receipts: 'receipts', mileage: 'mileage claims', price: 'price ob
 const PUZZLES = [
   { from: 'Finance', sender: 'Priya Desai', short: 'Expense claims course', subj: 'Expense claims keep bouncing',
     mail: ['Hi Kim,', 'Half the expense claims we get are rejected, and it is nearly always the receipt: wrong date, no VAT number, or a photo of a photo.', 'Mileage claims are fine, please leave those alone.', 'People will give this 12 minutes, tops.', 'Oh, and our CFO would love to record a welcome video. Your call.', 'Priya'],
+    sol: ['Hi Kim,', 'We need a course on the new expense tool. Every screen, narrated, and a welcome video from our CFO.', 'Priya'],
+    qs: [['What goes wrong with the claims today?', 'real'], ['How long should the course be?', 'plaus', 'Twelve minutes, tops. So, every screen?'], ['Shall I narrate every screen of the tool?', 'sol', 'Yes please! When can you start?']],
     ask: 'People keep getting their expense claims rejected.', topic: 'receipts', budget: 12, time: 150, result: 'Twelve people tried it. Rejected claims halved.',
     slots: [
       { name: 'Hook', opts: [['CFO welcome video', 6, 'fluff'], ['Story: Jan lost €40 to a missing receipt', 2, 'receipts'], ['Story: Ana’s mileage claim', 2, 'mileage']] },
@@ -39,7 +41,9 @@ const PUZZLES = [
       { name: 'Feedback', opts: [['Certificate of completion', 1, 'fluff'], ['See why your test claim would bounce', 2, 'any'], ['Happy sheet: rate this course 1 to 5', 1, 'fluff']] }] },
   { from: 'Sales', sender: 'Marco Bianchi', short: 'Price objections course', subj: 'New reps freeze on price',
     mail: ['Kim,', 'Our new reps open calls just fine. Where they go silent is the moment a customer says “that’s too expensive”.', 'They need something to say back, and they need to have said it out loud at least once before it happens for real.', 'They have 10 minutes between calls. Please, no catalogue tour. They hate it.', 'Marco'],
-    ask: 'New reps freeze when a customer says it’s too expensive.', topic: 'price', budget: 10, time: 100, result: 'Reps used the reply on real calls. Two stalled deals moved.',
+    sol: ['Kim,', 'The new reps need a sales course. The full product catalogue, start to finish.', 'Marco'],
+    qs: [['Where exactly do the new reps get stuck?', 'real'], ['How much time do the reps have?', 'plaus', 'Ten minutes between calls. So, the catalogue?'], ['One catalogue module, or several?', 'sol', 'Several! Lots of modules.']],
+    ask: 'New reps freeze when a customer says it’s too expensive.', topic: 'price', budget: 10, time: 110, result: 'Reps used the reply on real calls. Two stalled deals moved.',
     slots: [
       { name: 'Hook', opts: [['Sales VP keynote recording', 7, 'fluff'], ['Clip: a real call where price comes up', 2, 'price'], ['Clip: a great cold-call opening', 2, 'opening']] },
       { name: 'Explain', opts: [['How to open a call', 3, 'opening'], ['The 3-step reply to a price objection', 3, 'price'], ['Full product catalogue walkthrough', 9, 'fluff']] },
@@ -47,6 +51,8 @@ const PUZZLES = [
       { name: 'Feedback', opts: [['Leaderboard of quiz scores', 1, 'fluff'], ['Manager listens in and gives one tip', 1, 'any'], ['Badge: Objection Ninja', 1, 'fluff']] }] },
   { from: 'HR', sender: 'Lotte Visser', short: 'Feedback course for team leads', subj: 'Team leads dodge the hard sentence',
     mail: ['Hi Kim,', 'Our new team leads run decent meetings. The trouble is one-on-ones: when feedback gets uncomfortable, they start talking about the weather.', 'We can free up 14 minutes in the leadership track.', 'Last year people loved the colour personality quiz. Maybe use that again?', 'Lotte'],
+    sol: ['Hi Kim,', 'Our new team leads need a leadership course. Last year’s colour personality quiz was a hit. Start there?', 'Lotte'],
+    qs: [['What do the team leads avoid, exactly?', 'real'], ['How many minutes can we have?', 'plaus', 'We can free up 14. So, the colour quiz?'], ['Which colour quiz did people like?', 'sol', 'The one with the animals! You’ll find it.']],
     ask: 'New team leads avoid the hard part of feedback in one-on-ones.', topic: 'fb', budget: 14, time: 90, result: 'Most team leads used the script in their next one-on-one.',
     slots: [
       { name: 'Hook', opts: [['Clip: a one-on-one that drifts into weather talk', 2, 'fb'], ['HR policy overview', 6, 'fluff'], ['Icebreaker game', 3, 'fluff']] },
@@ -131,25 +137,44 @@ function enterScreen() {
   if (!S.said.itMail) { S.said.itMail = 1; mail({ from: 'IT Service Desk', subj: 'That AI course tool from the radio', kind: 'it', body: ['Hi all,', 'A few of you have asked about CourseGen, the tool from this morning’s radio. It is not approved yet.', 'Please don’t install anything. We will let you know.', 'IT Service Desk'] }, true); }
   if (!S.said.target) { S.said.target = 1; mail({ from: BOSS, subj: 'Q4: 40 courses', kind: 'it', body: ['Morning team,', `A reminder of where we stand. The target for this quarter is ${TARGET} courses. Kim, you are on ${coursesShown}.`, 'Every request has a due time. Our internal customers watch those closely, and so do I.', 'Performance reviews are on Friday.', 'Ruth'] }, true); }
   loadPuzzle(S.crafted % PUZZLES.length); frozen = false;
-  if (!S.said.screen) { S.said.screen = 1; say(['Kim opened her mail first. Kim always opened her mail first.', 'Read the request, then build the course in CourseCraft. Switch between them on the taskbar.', 'Kim could publish anything she liked. Her colleagues would let her know what they thought.', 'Every request came with a deadline. The clock in the corner only went one way.']); }
+  if (!S.said.screen) { S.said.screen = 1; say(['Kim opened her mail first. Kim always opened her mail first.', 'Read the request, then build the course in CourseCraft. Switch between them on the taskbar.',
+    'Every request arrived with its solution already attached. Kim could reply with a question first. Questions take time. So does building the wrong thing.', 'Kim could publish anything she liked. Her colleagues would let her know what they thought.', 'Every request came with a deadline. The clock in the corner only went one way.']); }
 }
 function loadPuzzle(i) {
   S.pz = i; S.sel = [null, null, null, null]; S.fails = 0;
   const P = PUZZLES[i];
-  S.briefRead = false; S.pending = false; S.openMail = null;
+  S.briefRead = false; S.budgetKnown = false; S.pending = false; S.openMail = null;
   if (S.briefFor !== i) {
     S.briefFor = i; S.dueStart = S.clock; S.due = S.clock + P.time; S.late = 0;
-    mail({ from: `${P.sender} · ${P.from}`, subj: P.subj, body: [...P.mail.slice(0, -1), `I need it live by ${hhmm(S.due)}.`, P.mail[P.mail.length - 1]], kind: 'brief', brief: i });
+    const by = `I need it live by ${hhmm(S.due)}.`;
+    mail({ from: `${P.sender} · ${P.from}`, subj: P.short, body: [...P.sol.slice(0, -1), by, P.sol[P.sol.length - 1]], full: [...P.mail.slice(0, -1), by, P.mail[P.mail.length - 1]], kind: 'brief', brief: i, qs: shuffle(P.qs.slice()) });
   }
   $('#due').hidden = false; renderDue();
   refreshBrief();
-  $('#check').className = 'check'; $('#check').textContent = ''; $('#pcHint').textContent = isTouch ? 'Read the brief in Mail. Pick one card per column.' : 'Read the brief in Mail. Pick one card per column. M switches windows.';
+  $('#check').className = 'check'; $('#check').textContent = ''; $('#pcHint').textContent = isTouch ? 'Ask about the brief in Mail. Pick one card per column.' : 'Ask about the brief in Mail. Pick one card per column. M switches windows.';
   renderSlots(); renderReader();
 }
+/* one question back to the requester, twenty minutes each: the real one gets the whole story */
+function askBrief(m, q) {
+  if (S.pending || S.toolTaken || m.asking) return;
+  const P = PUZZLES[m.brief], [text, kind, reply] = q; m.asking = true; m.qs = m.qs.filter(x => x !== q);
+  S.clock += 20; renderDue(); blip(700, .08, .04);
+  setTimeout(() => {
+    m.asking = false; if (S.ended || phase !== 'screen') return;
+    if (kind === 'real') { m.body = m.full; m.qs = []; m.asked = text; S.briefRead = true; asked(); sticky(text); }
+    else { m.body = [...m.body, `You asked: “${text}”`, reply]; if (kind === 'plaus') S.budgetKnown = true; }
+    m.unread = true; blip(1180, .08, .04); refreshBrief(); renderSlots(); renderReader(); renderPcInbox();
+    if (kind === 'real' && !S.said.realQ) { S.said.realQ = 1; say(['There it was. The actual problem, hiding behind the solution. It usually is.']); }
+    if (kind === 'sol' && !S.said.solQ) { S.said.solQ = 1; say(['Kim had asked about the solution. The solution was delighted. Twenty minutes, gone.']); }
+  }, 900);
+}
+// every real question Kim asks gets counted, and the first ones end up stuck to her monitor
+function asked() { S.questions++; const d = $('#dAsked'); if (d) d.textContent = S.questions; }
+function sticky(text) { const b = $('#stickies'); if (!b || b.children.length >= 3) return; const n = document.createElement('div'); n.className = 'sticky'; n.textContent = text; n.style.transform = `rotate(${(Math.random() * 6 - 3).toFixed(1)}deg)`; b.appendChild(n); }
 function refreshBrief() {
   const P = PUZZLES[S.pz];
   $('#briefFrom').textContent = 'Request from ' + P.from + ' · ' + P.sender; $('#briefText').textContent = P.short;
-  $('#briefMeta').innerHTML = S.briefRead ? `Learner time, from the brief: <em>${P.budget} min</em>. The rest is in the email.` : 'The details are in the brief. <em>Open it in Mail.</em>';
+  $('#briefMeta').innerHTML = S.briefRead ? `Learner time, from the brief: <em>${P.budget} min</em>. The rest is in the email.` : S.budgetKnown ? `Learner time: <em>${P.budget} min</em>. The problem itself? <em>Nobody has said.</em>` : 'The request is a solution. <em>Reply with a question in Mail.</em>';
 }
 function renderSlots() {
   const P = PUZZLES[S.pz], box = $('#slots'); box.innerHTML = '';
@@ -164,7 +189,7 @@ function renderSlots() {
     box.appendChild(col);
   });
   const sum = S.sel.reduce((a, j, i) => a + (j === null ? 0 : P.slots[i].opts[j][1]), 0);
-  setMeter(sum, S.briefRead ? P.budget : null);
+  setMeter(sum, S.briefRead || S.budgetKnown ? P.budget : null);
 }
 function setMeter(sum, budget) {
   if (budget == null) { $('#meterBar').style.width = Math.min(100, sum / 30 * 100) + '%'; $('#meter').classList.remove('over'); $('#meterTxt').textContent = `${sum} min learner time · budget in the brief`; return; }
@@ -182,10 +207,10 @@ function publish() {
     if (tag === 'fluff') issues.push(`Everyone skipped “${t}”. Every single person.`);
     else if (tag !== 'any' && tag !== P.topic) issues.push(`“${t}” is about ${TAGS[tag]}. Our problem is ${TAGS[P.topic]}.`);
   });
-  if (sum > P.budget) issues.push(`It takes ${sum} minutes. I said ${P.budget}, and I meant it.`);
+  if (sum > P.budget) issues.push(`It takes ${sum} minutes. People have ${P.budget}.`);
   S.pending = true; $('#publish').disabled = true; blip(520, .12, .04);
-  ck.className = 'check'; ck.innerHTML = '<b>Published to a pilot group · 30 min</b>Waiting to hear back from ' + who + '…';
-  const t0 = S.clock, wasLate = S.clock > S.due, t1 = performance.now(), adv = () => { const k = Math.min(1, (performance.now() - t1) / 1500); S.clock = t0 + 30 * k; renderDue(); if (k < 1 && S.pending) requestAnimationFrame(adv); };
+  ck.className = 'check'; ck.innerHTML = '<b>Published to a pilot group · 20 min</b>Waiting to hear back from ' + who + '…';
+  const t0 = S.clock, wasLate = S.clock > S.due, t1 = performance.now(), adv = () => { const k = Math.min(1, (performance.now() - t1) / 1500); S.clock = t0 + 20 * k; renderDue(); if (k < 1 && S.pending) requestAnimationFrame(adv); };
   requestAnimationFrame(adv);
   setTimeout(() => {
     if (S.ended || phase !== 'screen' || !S.pending) return;

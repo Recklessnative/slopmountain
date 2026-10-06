@@ -20,6 +20,7 @@ function step(dt) {
     const st = Math.floor(S.bob / Math.PI); S.bob += Math.hypot(dx, dz) * 2.3; S.bobAmt = Math.min(1, S.bobAmt + dt * 4);
     if (Math.floor(S.bob / Math.PI) !== st && phase !== 'drive' && phase !== 'screen') noise(.07, phase === 'street' ? 520 : 380, .035);
   } else S.bobAmt = Math.max(0, S.bobAmt - dt * 3);
+  updateFork(dt, len > .05);
   // act 1: idle ending, then the dive into the laptop
   if (phase === 'desk' && !frozen && S.introDone) { S.idleT += dt; if (S.idleT > 45) { frozen = true; say(['Kim did nothing at all. Someone else would, eventually.'], () => ending('idle')); } }
   if (S.dive > 0) {
@@ -140,7 +141,7 @@ function animate() {
   // inside: dark office fog; outside (once the walls are gone): Silent Hill's pale grey
   const outside = !officeWalls.visible || S.dissolve > .3 || phase === 'street' || phase === 'drive';
   _fogC.copy(outside ? FOG_OUT : FOG_IN); scene.fog.color.lerp(_fogC, Math.min(1, dt * 1.2)); scene.background.copy(scene.fog.color);
-  const wideP = phase === 'peak' || phase === 'talk' || phase === 'forever';
+  const wideP = phase === 'peak' || phase === 'fork' || phase === 'talk' || phase === 'forever';
   const far = outside ? (wideP ? (ps1 ? 80 : 130) : (ps1 ? 55 : 110)) : (ps1 ? FOG.ps1[2] : FOG.clean[2]); scene.fog.far += (far - scene.fog.far) * Math.min(1, dt * 1.5);
   flash.intensity = phase === 'drive' ? .25 : outside ? .9 : 1.3;
   lmsLook(dt);
