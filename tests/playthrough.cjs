@@ -1,4 +1,5 @@
-// Full headless playthrough on AZERTY keys: car, office, deadlines, CourseGen, the LMS otherworld, peak, all six conversations, the finale.
+// Full headless playthrough on AZERTY keys: car, office, asking about a brief, deadlines, CourseGen, the LMS glimpse, peak, the summit fork,
+// all seven conversations (one plausible question first) and the finale.
 // Screenshots land in tests/out/. Exits non-zero on any page error.
 const { chromium } = require('playwright');
 const fs=require('fs'), http=require('http'), path=require('path');
@@ -25,6 +26,12 @@ const fs=require('fs'), http=require('http'), path=require('path');
   await p.waitForTimeout(3500); console.log('after 3.5s', JSON.stringify(await st()));
   await p.keyboard.press('e'); let s=await waitFor(s=>s.ph==='screen',20000); console.log('screen',JSON.stringify(s));
   await p.waitForTimeout(800); await p.screenshot({path:shot('mail0.png')}); await p.click('#mailList .mi.brief'); await p.waitForTimeout(400); await p.screenshot({path:shot('brief.png')});
+  // reply with a question: a plausible one first (budget only), then the real one (the whole mail, a sticky note)
+  const askQ=async t=>{ await p.evaluate(t=>[...document.querySelectorAll('.askbar .ask')].find(b=>b.textContent===t).click(),t); await p.waitForTimeout(1300); };
+  await askQ('How long should the course be?'); console.log('plausible', await p.evaluate(()=>({budget:__slop.S.budgetKnown,read:__slop.S.briefRead,clock:__slop.S.clock})));
+  await askQ('What goes wrong with the claims today?'); await p.waitForTimeout(300); await p.screenshot({path:shot('asked.png')});
+  console.log('real', await p.evaluate(()=>({read:__slop.S.briefRead,q:__slop.S.questions,sticky:document.querySelectorAll('#stickies .sticky').length})));
+  await p.waitForFunction(()=>!__slop.talking,null,{timeout:30000}).catch(()=>{});
   await p.click('#tCraft'); await p.click('#card-0-0'); await p.click('#card-1-0'); await p.click('#card-2-0'); await p.click('#card-3-0'); await p.click('#publish'); await p.waitForTimeout(2600); await p.screenshot({path:shot('fail.png')});
   console.log('trust after fail', await p.evaluate(()=>__slop.S.trust)); await p.click('#tMail'); await p.click('#mailList .mi.bad'); await p.waitForTimeout(300); await p.screenshot({path:shot('pushback.png')}); await p.click('#tCraft');
   const solve=async(ans)=>{ for(let i=0;i<4;i++){ const on=await p.evaluate(i=>__slop.S.sel[i],i); if(on!==ans[i]) await p.click(`#card-${i}-${ans[i]}`);} await p.click('#publish'); };
@@ -41,34 +48,32 @@ const fs=require('fs'), http=require('http'), path=require('path');
   await p.evaluate(()=>dispatchEvent(new KeyboardEvent('keydown',{key:'&',code:'Digit1'})));
   s=await waitFor(s=>s.g>=5,60000); await p.waitForTimeout(600); await p.screenshot({path:shot('gen5.png')}); s=await waitFor(s=>s.g>=11,60000); await p.screenshot({path:shot('shaky.png')});
   s=await waitFor(s=>s.ph==='tool',60000); console.log('back in office',JSON.stringify(s)); await p.waitForTimeout(2500); await p.screenshot({path:shot('office.png')});
-  for(let i=0;i<40;i++){ await p.keyboard.press('e'); await p.waitForTimeout(80);} 
-  // act 4: the LMS otherworld. Collect the three real questions and walk out of the exit
-  s=await waitFor(s=>s.ph==='lms',200000); console.log('lms',JSON.stringify(s)); await p.waitForTimeout(1500); await p.screenshot({path:shot('lms.png')});
-  await p.evaluate(()=>{ __slop.L.popT=9999; __slop.L.comps.forEach(c=>{c.state='sated';c.sated=9999;}); });
-  for(const n of await p.evaluate(()=>__slop.L.notes.map(n=>({x:n.x,z:n.z})))){
-    await p.evaluate(([x,z])=>Object.assign(__slop.player,{x,z:z+1.1,yaw:0,pitch:-.3}),[n.x,n.z]); await p.waitForTimeout(500); await p.keyboard.press('e');
-    for(let i=0;i<4;i++){ await p.waitForTimeout(400); await p.keyboard.press(' ');}
-  }
-  console.log('questions', await p.evaluate(()=>__slop.L.qs.length));
-  await p.evaluate(()=>{ const d=__slop.L.xDoor; Object.assign(__slop.player,{x:d.x,z:d.z+2,yaw:0,pitch:0}); __slop.L.mShut=false; });
-  await p.keyboard.down('z'); await p.waitForFunction(()=>__slop.phase!=='lms',null,{timeout:60000}).catch(()=>{}); await p.keyboard.up('z');
+  // course 30: a two-second glimpse of the LMS, then straight back to generating
+  await p.evaluate(()=>{ __slop.S.generated=29; }); for(let i=0;i<6;i++){ await p.keyboard.press('e'); await p.waitForTimeout(150);} 
+  s=await waitFor(s=>s.ph==='shift',60000); await p.waitForTimeout(900); await p.screenshot({path:shot('glimpse.png')}); console.log('glimpse',JSON.stringify(s));
   for(let i=0;i<4;i++){ await p.waitForTimeout(500); await p.keyboard.press(' ');}
-  s=await waitFor(s=>s.ph==='super',90000); console.log('out of the LMS',JSON.stringify(s));
+  s=await waitFor(s=>s.ph==='super',90000); console.log('super',JSON.stringify(s));
   for(let i=0;i<70;i++){ await p.keyboard.press('e'); await p.waitForTimeout(80);} 
   s=await waitFor(s=>s.ph==='peak',200000); console.log('peak',JSON.stringify(s)); await p.waitForTimeout(4000); await p.screenshot({path:shot('peak.png')});
   for(let i=0;i<10;i++){ await p.keyboard.press(' '); await p.waitForTimeout(600);} 
   await p.waitForFunction(()=>__slop.S.ringing||document.querySelectorAll('.tag').length>3,null,{timeout:60000}).catch(()=>{}); await p.waitForTimeout(3000); await p.screenshot({path:shot('learners.png')}); s=await waitFor(s=>s.ring,60000); await p.waitForTimeout(800); await p.screenshot({path:shot('ring.png')}); await p.keyboard.press('e');
   for(let i=0;i<12;i++){ await p.keyboard.press(' '); await p.waitForTimeout(500);} 
-  s=await waitFor(s=>s.ch,30000); await p.keyboard.press('e'); await p.waitForTimeout(1500);
-  await p.screenshot({path:shot('arrow.png')});
-  for(let k=0;k<6;k++){
+  // the summit: someone waiting below, a hole into the mountain, the laptop. Walk down.
+  for(let i=0;i<4;i++){ await p.keyboard.press(' '); await p.waitForTimeout(500);} 
+  s=await waitFor(s=>s.ph==='fork',30000); await p.waitForFunction(()=>__slop.S.forkLive,null,{timeout:30000}).catch(()=>{}); await p.waitForTimeout(1500); await p.screenshot({path:shot('fork.png')});
+  console.log('fork',JSON.stringify(s), await p.evaluate(()=>[!!__slop.hole,!!__slop.peakLaptop,!!__slop.talker]));
+  const pick=t=>p.evaluate(t=>[...document.querySelectorAll('#choices .choice')].find(b=>b.textContent.slice(1)===t).click(),t);
+  for(let k=0;k<7;k++){
     await waitFor(s=>!s.ch,5000);
     await p.evaluate(()=>{const t=__slop.talker; __slop.player.x=t.position.x; __slop.player.z=t.position.z+1.8; __slop.player.yaw=0;});
     await p.waitForTimeout(400); await p.keyboard.press('e'); if(k===0){ await p.waitForTimeout(2500); await p.screenshot({path:shot('talker.png')}); }
-    s=await waitFor(s=>s.ch,30000); await p.evaluate(()=>dispatchEvent(new KeyboardEvent('keydown',{key:'&',code:'Digit1'})));
-    for(let i=0;i<4;i++){ await p.waitForTimeout(400); await p.keyboard.press(' ');} 
-    s=await waitFor(s=>s.t>k||s.end,60000);
+    s=await waitFor(s=>s.ch,30000); const T=await p.evaluate(()=>__slop.TALKS[__slop.S.talkIdx]);
+    if(k===0){ await p.screenshot({path:shot('three-options.png')}); await pick(T.p); for(let i=0;i<4;i++){ await p.waitForTimeout(400); await p.keyboard.press(' ');} s=await waitFor(s=>s.ch,30000); console.log('patience', await p.evaluate(()=>__slop.S.patience), await p.evaluate(()=>document.querySelectorAll('#choices .choice').length)); }
+    await pick(T.q);
+    for(let i=0;i<6;i++){ await p.waitForTimeout(400); await p.keyboard.press(' ');} 
+    s=await waitFor(s=>s.t>k||s.end,60000); console.log('talk',k,T.who,JSON.stringify(s));
   }
+  console.log('dashboard', await p.evaluate(()=>[document.querySelector('#dBehav').textContent,document.querySelector('#dAsked').textContent]));
   for(let i=0;i<30;i++){ await p.waitForTimeout(1000); if(i%3===0) await p.screenshot({path:shot(`finale-${i/3}.png`)}); }
   await p.waitForTimeout(100); s=await waitFor(s=>s.end,40000); console.log('end',JSON.stringify(s));
   console.log(errs.join('\n')||'no errors'); await b.close(); srv.close(); if(errs.length) process.exitCode=1;

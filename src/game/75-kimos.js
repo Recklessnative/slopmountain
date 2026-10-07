@@ -26,7 +26,6 @@ function renderPcInbox() {
 function openMail(m) {
   if (m.req) m.req.read = true; else m.unread = false;
   S.openMail = m; focusWin('mail'); blip(880, .04, .02);
-  if (m.kind === 'brief' && m.brief === S.pz && !S.briefRead) { S.briefRead = true; refreshBrief(); renderSlots(); }
   renderReader(); renderPcInbox();
 }
 function renderReader() {
@@ -37,6 +36,11 @@ function renderReader() {
     if (Array.isArray(x)) { const ul = document.createElement('ul'); x.forEach(i => { const li = document.createElement('li'); li.textContent = i; ul.appendChild(li); }); a.appendChild(ul); }
     else { const p = document.createElement('p'); p.textContent = x; a.appendChild(p); }
   });
+  if (m.kind === 'brief' && m.brief === S.pz && m.qs && m.qs.length && !S.toolTaken) {
+    const bar = document.createElement('div'); bar.className = 'askbar'; const h = document.createElement('b'); h.textContent = m.asking ? 'Waiting for a reply…' : 'Reply with one question · 20 min'; bar.appendChild(h);
+    if (!m.asking) m.qs.forEach(q => { const b = document.createElement('button'); b.type = 'button'; b.className = 'ask'; b.textContent = q[0]; b.onclick = () => { askBrief(m, q); renderReader(); }; bar.appendChild(b); });
+    a.appendChild(bar);
+  }
   if (m.delta) { const d = document.createElement('p'); d.className = 'delta' + (m.delta > 0 ? ' up' : ''); d.textContent = `Colleague trust ${m.delta > 0 ? '+' : '−'}${Math.abs(m.delta)}`; a.appendChild(d); }
 }
 function toast(title, text, m) {

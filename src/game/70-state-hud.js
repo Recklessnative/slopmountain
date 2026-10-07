@@ -5,7 +5,8 @@ const S = {};
 function resetState() {
   Object.assign(S, { idleT: 0, crafted: 0, craftProg: 0, toolShown: false, refused: false, generated: 0, inbox: [], reqT: 6, reqIdx: 0, auto: false, autoT: 0,
     said: {}, talkIdx: 0, wrong: 0, ended: false, dissolve: 0, fov: 70, toPeak: false, toDesk: false, dawn: 0, crane: 0, lineDone: false, sparksDone: false, crowned: false, sparksLeft: 0, deskStart: 0, toolT: 0, ringing: false, pz: 0, sel: [null, null, null, null], fails: 0, toolTaken: false, generating: false, dive: 0, fountain: 0, introDone: false, listening: false, doorT: 0, doorShut: false,
-    mails: [], trust: 60, trustGone: false, bob: 0, bobAmt: 0, clock: 9 * 60 + 12, due: 0, dueStart: 0, late: 0, missed: 0, tickT: 0, briefRead: false, pending: false, openMail: null, win: 'mail' });
+    mails: [], trust: 60, trustGone: false, bob: 0, bobAmt: 0, clock: 9 * 60 + 12, due: 0, dueStart: 0, late: 0, missed: 0, tickT: 0, briefRead: false, budgetKnown: false, pending: false, openMail: null, win: 'mail',
+    lmsDeaths: 0, viaLMS: false, forkT: 0, forkLive: false, reachedFork: false, questions: 0, talkSkip: [], shrunk: 0, grown: 0, unresolved: 0, patience: 3, triedP: false });
 }
 resetState();
 const found = new Set(store.get('slop-endings-v2', []));

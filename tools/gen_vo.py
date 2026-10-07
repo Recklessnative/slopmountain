@@ -28,6 +28,9 @@ VOICES = {
     'Noor, customer service': ('bf_alice', 1.0, 'en-gb'),
     'Marco, sales': ('am_eric', 1.0, 'en-us'),
     'Lotte, team lead': ('af_kore', 1.0, 'en-us'),
+    'Noor, compliance': ('bf_alice', 1.0, 'en-gb'),
+    'Fleur, team lead': ('af_kore', 1.0, 'en-us'),
+    'Ruth': ('bf_lily', .97, 'en-gb'),
 }
 def speakable(t):
     t = t.replace('“', '').replace('”', '').replace('‘', "'").replace('’', "'").replace('…', '... ').replace('✦', '')

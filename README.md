@@ -1,6 +1,6 @@
 # The Slop Mountain
 
-A narrated first-person browser game about AI-generated content in learning and development, in the spirit of *The Stanley Parable* and the PS1 *Silent Hill*. Kim, a learning designer, builds courses by hand until a tool arrives that makes one in eleven seconds. Thirty courses later, the notification chime swells and the office peels away into the LMS, where the learners have turned into Completions.
+A narrated first-person browser game about AI-generated content in learning and development, in the spirit of *The Stanley Parable* and the PS1 *Silent Hill*. Kim, a learning designer, builds courses by hand until a tool arrives that makes one in eleven seconds. Thirty courses later, the notification chime swells and Kim catches a two-second glimpse of what the learners have become. At the top of the mountain she can walk down and talk to people one at a time, climb into the LMS to see how deep it goes, or open the laptop again.
 
 An experiment by Yannick, learning strategist.
 
@@ -23,8 +23,8 @@ The game is plain JavaScript on [three.js r128](https://threejs.org) with no run
 | `public/vendor/` | three.js r128 |
 | `tools/build.mjs` | Joins the sources into `dist/game.js` and copies assets into `dist/` |
 | `tools/gen_vo.py`, `tools/sweep.py`, `voice/` | Voice pipeline: collect spoken lines, record them with Kokoro TTS |
-| `src/game/88-lms.js` | The LMS otherworld: module rooms as data, attention, Completions, real questions |
-| `tests/lms.cjs` | Headless run through the LMS and its two endings |
+| `src/game/88-lms.js` | The LMS branch: module rooms as data, attention as a 12:00 clock, Completions, real questions, the Mandatory heist |
+| `tests/lms.cjs` | Headless run through the summit fork, the LMS, its two endings and the way back to the summit |
 | `tests/playthrough.cjs` | Headless full playthrough with screenshots in `tests/out/` |
 
 The source files share one scope: the build wraps them in a single function, so a name declared in one file is visible in all of them.
